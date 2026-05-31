@@ -1,9 +1,10 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-05-31
-Current Phase: Phase 1 — COMPLETE / Phase 2 — READY TO START (after zones.json coordinates filled)
-Current Status: Phase 1 design and documentation complete. zones.json coordinates still need filling before Phase 2.
+Current Phase: Phase 2 — READY TO START
+Current Status: Phase 1 complete and pushed (4160a0e). zones.json polygon coordinates needed before Phase 2 validation tests.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
+Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -13,7 +14,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | Phase | Name | Status | Notes |
 |-------|------|--------|-------|
 | 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
-| 1 | Business Logic Design | COMPLETE | DESIGN.md, CHOICES.md, visualise_zones.py created |
+| 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 2 | CV Validation | READY TO START | Blocked on zones.json coordinates (use visualise_zones.py) |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
