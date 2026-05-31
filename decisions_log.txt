@@ -1,0 +1,106 @@
+PURPLLE STORE INTELLIGENCE PLATFORM — DECISIONS LOG
+=====================================================
+Running log of non-obvious engineering decisions.
+This file is the raw source for CHOICES.md (assembled in Phase 7).
+Record every decision immediately when made, including the reason.
+
+Format:
+  Decision N:
+  Date: YYYY-MM-DD
+  Context: <what situation prompted this decision>
+  Decision: <what was chosen>
+  Rationale: <why this option over alternatives>
+  Trade-off: <what was given up>
+  CHOICES.md section: <which section this belongs to>
+
+=====================================================
+
+Decision 1:
+Date: 2026-05-31
+Context: Phase 0 scaffolding — project structure established.
+Decision: Repository structure follows PURPLLE_MASTER_PLAN.md Section 24 exactly.
+Rationale: Single source of truth for structure prevents drift. Future agents and
+  collaborators can verify all files against the plan without guessing intent.
+Trade-off: No deviation allowed without updating the plan first.
+CHOICES.md section: Repository Structure
+
+Decision 2:
+Date: 2026-05-31
+Context: Choosing between opencv-python and opencv-python-headless for requirements.txt.
+Decision: Chose opencv-python-headless over opencv-python.
+Rationale: opencv-python bundles Qt GUI libraries (~200MB larger) that are not needed
+  in a headless server/Docker environment. opencv-python-headless has no display
+  dependency, installs faster, produces a smaller Docker image, and avoids X11
+  errors inside containers that have no display server.
+Trade-off: Cannot use cv2.imshow() or any GUI windows. All visualisation during
+  development must use file output (cv2.imwrite) or separate tooling.
+CHOICES.md section: Dependency Choices
+
+Decision 3:
+Date: 2026-05-31
+Context: zones.json polygon coordinates are required before the detection pipeline
+  can run, but video files have not yet been inspected.
+Decision: zones.json created as a template with empty polygon arrays and TODO markers.
+  Coordinates must NOT be invented or fabricated. They must be derived from:
+  (a) Brigade_Road_Store_layout.xlsx inspection, and/or
+  (b) Frame extraction from actual video files using visualise_zones.py.
+Rationale: Fabricated coordinates would produce silently wrong zone classifications
+  that inflate or deflate all funnel metrics without any error signal. An empty
+  template with clear TODO markers fails loudly (zone_classifier.py will warn),
+  which is safer and more honest than fake data.
+Trade-off: Pipeline cannot run until Phase 2 zone extraction is complete.
+CHOICES.md section: Zone Configuration
+
+Decision 4:
+Date: 2026-05-31
+Context: CAM 4 covers the warehouse/storage zone. Choosing between YOLOv8 person
+  detection and OpenCV background subtraction.
+Decision: CAM 4 uses background subtraction (OpenCV MOG2) rather than YOLO.
+Rationale: The warehouse zone requires activity detection, not customer identification.
+  Background subtraction is faster, lighter, and more appropriate for the task.
+  A minimum contour area threshold (500 sq px at 640x360, configurable via
+  warehouse_motion_threshold in config.json) filters lighting-induced false
+  positives, retaining only motion events consistent with human presence.
+  No YOLO model weights are needed for this camera.
+Trade-off: Cannot count individual people in the warehouse. Returns motion events
+  and restocking duration estimates, not headcounts.
+CHOICES.md section: Detection Strategy — CAM 4
+
+Decision 5:
+Date: 2026-05-31
+Context: Choosing a person tracking strategy across all cameras.
+Decision: Implement a lightweight centroid tracker as the primary tracker.
+  ByteTrack is a documented fallback, contingent on Phase 2 validation.
+Rationale: Centroid tracker has zero external dependency chain. ByteTrack has
+  installation friction on CPU-only environments (requires specific scipy, lap/lapjv
+  versions, sometimes Cython compilation) and may produce garbage track IDs inside
+  Docker without a clean dependency chain. For zone-level aggregate analytics,
+  centroid tracking with configurable distance threshold (80px at 640x360) is
+  sufficient and reliable.
+Trade-off: Less sophisticated re-identification than ByteTrack. Occasional ID
+  reassignment after occlusion is corrected by the dwell merge rule in
+  session_manager.py.
+CHOICES.md section: Tracking Strategy
+
+Decision 6:
+Date: 2026-05-31
+Context: requirements.txt version pinning strategy.
+Decision: requirements.txt specifies minimum version constraints (>=) with a TODO
+  to pin exact versions after installation verification in the actual development
+  environment. Exact pinning is deferred to Phase 3 setup.
+Rationale: Pinning to exact versions without testing the install may create
+  impossible dependency combinations across platforms. The correct approach is:
+  install with >= bounds, verify everything works, then run pip freeze and replace
+  this file with the exact output.
+Trade-off: requirements.txt is not fully reproducible until pinning is completed
+  in Phase 3.
+CHOICES.md section: Dependency Choices
+
+TODO entries for future decisions (record when decided in later phases):
+- [ ] Camera-to-zone mapping confirmed from actual video inspection (Phase 0 completion)
+- [ ] zones.json polygon extraction method (Excel vs frame extraction, Phase 0/2)
+- [ ] Entry line and direction vector determination for CAM 3 (Phase 2)
+- [ ] ByteTrack accept/reject decision after Phase 2 validation test
+- [ ] config.json value calibration results (tracker_distance_threshold, warehouse
+      motion_threshold) from Phase 2 testing
+- [ ] Final decision on dwell merge window value after Phase 2 testing

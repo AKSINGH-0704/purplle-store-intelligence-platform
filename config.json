@@ -1,0 +1,15 @@
+{
+  "max_frames_per_camera": 1000,
+  "frame_skip": 5,
+  "detection_resolution": [640, 360],
+  "confidence_threshold": 0.5,
+  "tracker_distance_threshold": 80,
+  "warehouse_motion_threshold": 500,
+  "dwell_merge_window_seconds": 30,
+  "zone_abandonment_window_seconds": 300,
+  "repeat_visit_threshold": 3,
+  "min_dwell_for_visit_seconds": 10,
+  "queue_occupancy_threshold": 2,
+  "queue_duration_threshold_seconds": 300,
+  "staff_filter_enabled": true
+}
