@@ -1,9 +1,9 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-05-31
-Current Phase: Phase 0 — COMPLETE (AI scaffolding tasks) / Phase 1 — READY TO START
-Current Status: Phase 0 scaffolding committed and pushed. Manual Phase 0 tasks remain (see Blockers).
-Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
+Current Phase: Phase 1 — COMPLETE / Phase 2 — READY TO START (after zones.json coordinates filled)
+Current Status: Phase 1 design and documentation complete. zones.json coordinates still need filling before Phase 2.
+Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -12,14 +12,28 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 
 | Phase | Name | Status | Notes |
 |-------|------|--------|-------|
-| 0 | Prerequisites and Zone Extraction | COMPLETE (AI tasks) | Committed a612c5b; manual tasks (zones, YOLO weights, CSV) pending |
-| 1 | Business Logic Design | READY TO START | Can begin after Phase 0 manual inspection tasks |
-| 2 | CV Validation | NOT STARTED | — |
+| 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
+| 1 | Business Logic Design | COMPLETE | DESIGN.md, CHOICES.md, visualise_zones.py created |
+| 2 | CV Validation | READY TO START | Blocked on zones.json coordinates (use visualise_zones.py) |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
+
+---
+
+## PHASE 1 — COMPLETED TASKS
+
+- [x] Created DESIGN.md — 16-section full architecture document with 3 Mermaid diagrams
+- [x] Created CHOICES.md — 12-section engineering decisions skeleton sourced from decisions_log.txt
+- [x] Created visualise_zones.py — zone polygon overlay tool (file output only, no cv2.imshow)
+- [x] Updated config.json — added staff_roundtrip_threshold (3) and staff_roundtrip_window_minutes (30)
+- [x] Updated decisions_log.txt — added Decision 8 (layout image-only finding) and Decision 9 (CAM 4 flicker calibration)
+- [x] Created PHASE1_REPORT.md
+- [x] Updated PROGRESS.md (this file)
+- [x] Event schema frozen in DESIGN.md Section 8
+- [x] API contracts frozen in DESIGN.md Section 11
 
 ---
 

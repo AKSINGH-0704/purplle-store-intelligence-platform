@@ -96,11 +96,100 @@ Trade-off: requirements.txt is not fully reproducible until pinning is completed
   in Phase 3.
 CHOICES.md section: Dependency Choices
 
+Decision 7:
+Date: 2026-05-31
+Context: Phase 0 manual inspection of all 5 video files to confirm camera-to-zone
+  mapping and assess suitability for planned analytics before any pipeline code
+  is written.
+Decision: Camera-to-zone mapping confirmed from direct video inspection. Observations
+  recorded as ground truth for all downstream zone configuration decisions.
+  CAM 1 — Skincare/Bath zone: dedicated product browsing area focused on skincare
+    and cosmetics shelving. Suitable for dwell-time and zone-engagement analytics.
+    Zone polygon will cover the primary shelving area visible in frame.
+  CAM 2 — Main Floor: wide-angle view of main store floor with multiple customers
+    visible simultaneously. Suitable for occupancy and circulation metrics.
+    Zone polygon will cover the full walkable floor area.
+  CAM 3 — Entrance/Exit: entrance and exit area clearly visible with customer
+    movement between store interior and exterior corridor. Entry line and crossing
+    direction vector to be finalised in Phase 2 after running visualise_zones.py
+    and testing on actual crossing events.
+  CAM 4 — Warehouse: storage area with cartons visible. Lighting flicker observed.
+    This is a critical calibration note — warehouse_motion_threshold in config.json
+    must be tuned carefully during Phase 2 to avoid false positives from flicker.
+    Default of 500 sq px may need to be raised. Will validate during Phase 2.
+  CAM 5 — Billing Counter: checkout area and billing counter clearly visible.
+    Suitable for queue monitoring and checkout interaction analytics. Zone polygon
+    will cover the counter area and immediate queue space in front of it.
+Rationale: Direct video inspection before writing any detection code prevents
+  building against wrong assumptions. CAM 4 lighting flicker is a discovered risk
+  that must be handled explicitly rather than discovered during debugging.
+Trade-off: Time spent on manual inspection is not recoverable, but the alternative
+  is silent misconfiguration in all downstream metrics.
+CHOICES.md section: Camera Zone Mapping and Validation
+
+=====================================================
+
 TODO entries for future decisions (record when decided in later phases):
-- [ ] Camera-to-zone mapping confirmed from actual video inspection (Phase 0 completion)
-- [ ] zones.json polygon extraction method (Excel vs frame extraction, Phase 0/2)
-- [ ] Entry line and direction vector determination for CAM 3 (Phase 2)
+Decision 8:
+Date: 2026-05-31
+Context: Brigade_Road_Store_layout.xlsx was opened and inspected to determine
+  whether machine-readable zone coordinates exist for direct use in zones.json.
+Decision: The Excel file contains a floorplan image only. No coordinate tables,
+  no vector layers, no numeric zone boundaries. Polygon extraction must come
+  entirely from video frame inspection using visualise_zones.py.
+Rationale: There is no shortcut. Every polygon coordinate must be derived by
+  visually inspecting actual video frames and manually placing polygon points
+  in pixel space at 640x360 resolution. This is the correct approach — the only
+  source of ground truth for pixel-space polygons is the video feed itself.
+  Store layout knowledge (entry door on left wall, billing counter on right,
+  skincare top wall, makeup bottom wall, F.O.H island center floor) informs
+  where to look in each video frame, but does not substitute for coordinate extraction.
+Trade-off: Time cost of manual polygon extraction. visualise_zones.py is the
+  tool that will make this iterative process efficient.
+CHOICES.md section: Zone Configuration
+
+Decision 9:
+Date: 2026-05-31
+Context: CAM 4 (warehouse) video inspection revealed visible lighting flicker.
+  The default warehouse_motion_threshold of 500 sq px (config.json) was set
+  before observing this flicker. Risk: false positive motion events from flicker.
+Decision: Do not change the default threshold value yet. Instead:
+  (a) The default of 500 sq px remains in config.json as the starting point.
+  (b) Phase 2 calibration is REQUIRED for this camera specifically.
+  (c) If flicker produces contours > 500 sq px, the threshold must be raised.
+      Expected calibration range: 500–2000 sq px depending on observed flicker area.
+  (d) Calibration method: run background_motion.py on 100 frames of CAM 4 with
+      no humans present (or confirmed quiet periods), log all contour areas
+      observed, set threshold above the maximum flicker-only contour area.
+Rationale: Hardcoding a higher threshold now without data would be guessing.
+  Keeping 500 as default while documenting the calibration requirement is more
+  honest and auditable. The flicker risk is known and mitigation is planned.
+Trade-off: Phase 2 must not skip CAM 4 calibration. If it is skipped, warehouse
+  events will include false positives and operational intelligence will be unreliable.
+CHOICES.md section: Detection Strategy — CAM 4
+
+Decision 10:
+Date: 2026-05-31
+Context: CSV file in data/ was named "Brigade_Bangalore_10_April_26 (1)bc6219c.csv"
+  — a download artifact (the "(1)" indicates a duplicate download; "bc6219c" is
+  likely a browser-appended hash). All documentation and source code referenced
+  the canonical name "Brigade_Bangalore_10_April_26.csv".
+Decision: Renamed the file to "Brigade_Bangalore_10_April_26.csv" before the
+  Phase 1 git commit. All existing references in .md files, .py files, and
+  DESIGN.md already used the correct canonical name and required no changes.
+Rationale: A filename mismatch between documentation and the actual file on disk
+  would cause csv_analytics.py to fail silently or with a confusing FileNotFoundError
+  in Phase 3. Normalising before committing is cheaper than debugging later.
+Trade-off: None. Pure cleanup with no side effects.
+CHOICES.md section: Dependency Choices (file management)
+
+- [ ] zones.json polygon extraction method confirmed (frame extraction, not Excel —
+      resolved by Decision 8; this TODO is now about completing the extraction itself)
+- [ ] Entry line coordinates and direction vector for CAM 3 finalised (Phase 2)
 - [ ] ByteTrack accept/reject decision after Phase 2 validation test
-- [ ] config.json value calibration results (tracker_distance_threshold, warehouse
-      motion_threshold) from Phase 2 testing
-- [ ] Final decision on dwell merge window value after Phase 2 testing
+- [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
+      (Phase 2) — default 500 may need to increase due to observed flicker
+- [ ] tracker_distance_threshold confirmed at 80px or adjusted after Phase 2 test
+- [ ] Dwell merge window value confirmed after Phase 2 testing
+- [ ] requirements.txt exact version pinning completed after Phase 3 environment
+      setup (pip freeze output replaces current >= bounds)

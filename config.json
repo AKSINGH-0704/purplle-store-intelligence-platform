@@ -11,5 +11,7 @@
   "min_dwell_for_visit_seconds": 10,
   "queue_occupancy_threshold": 2,
   "queue_duration_threshold_seconds": 300,
-  "staff_filter_enabled": true
+  "staff_filter_enabled": true,
+  "staff_roundtrip_threshold": 3,
+  "staff_roundtrip_window_minutes": 30
 }
