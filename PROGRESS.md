@@ -20,7 +20,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
 | 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
 | 4 | API Development | **COMPLETE** | Single checkpoint — commit 9e91023 |
-| 5 | Dashboard | **COMPLETE** | Single checkpoint -- commit TBD |
+| 5 | Dashboard | **COMPLETE** | Single checkpoint -- commit fea0865 |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
 
@@ -97,7 +97,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 
 ## PHASE 5 -- COMPLETE
 
-- [x] Checkpoint 5: Streamlit dashboard -- src/dashboard.py -- commit TBD
+- [x] Checkpoint 5: Streamlit dashboard -- src/dashboard.py -- commit fea0865
   - 5 tabs: Executive Overview, Customer Journey, Zone Intelligence, Revenue Intelligence, System Health
   - Single @st.cache_data(ttl=60) fetch_dashboard() call feeds all tabs
   - Plotly go.Funnel for stages 2-4; entry (0) and transactions (24) as separate st.metric cards
