@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 2 — COMPLETE / Phase 3 — READY TO START
-Current Status: All 5 checkpoints complete. config.json fully calibrated. Phase 3 (Backend and Event Pipeline) can begin.
+Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.1 complete)
+Current Status: Foundation layer implemented. utils, zone classifier, event schema, integrity layer all operational. 13/13 validation checks pass.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -18,7 +18,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
-| 3 | Backend and Event Pipeline | NOT STARTED | — |
+| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoint 3.1 complete — commit 70f3959 |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
@@ -35,7 +35,24 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 - [x] Checkpoint 2.4: tools/test_zone_visits.py -- PASS. CAM_1: 2v/33.4s, CAM_2: 5v/26.6s, CAM_5: 2v/27.3s. Pipeline validated. (Decision 16)
 - [x] Checkpoint 2.5: tools/test_warehouse_motion.py — COMPLETE. Q5 = PASS. warehouse_motion_threshold = 1631 sq px (p99 flicker × 1.30). False positive rate reduced from 99% → ~0-1%. (Decision 17)
 
-**Next action:** Phase 2 COMPLETE. All checkpoints done. Proceed to Phase 3 (Backend and Event Pipeline).
+**Next action:** Phase 2 COMPLETE. All checkpoints done. Phase 3 Checkpoint 3.1 complete.
+
+---
+
+## PHASE 3 — IN PROGRESS
+
+- [x] Checkpoint 3.1: Foundation layer — commit 70f3959
+  - src/utils.py: load_config, load_zones, compute_sha256, write_hashes, verify_hashes, get_logger, LOG_BUFFER, format_duration, all event schema factories, append_event
+  - src/zone_classifier.py: point_in_polygon (ray-casting), classify_zone
+  - zones.json: CAM_3 door_x_gate=[250,490] added (Decision 15 carry-forward)
+  - tools/validate_checkpoint_31.py: 13/13 checks pass; all 5 video hashes computed
+- [ ] Checkpoint 3.2: Detection module — src/detection.py (YOLO + centroid tracker production implementation)
+- [ ] Checkpoint 3.3: Entry counter + session manager — src/entry_counter.py, src/background_motion.py, src/session_manager.py
+- [ ] Checkpoint 3.4: Staff filter — src/staff_filter.py
+- [ ] Checkpoint 3.5: Funnel + anomalies + CSV — src/funnel.py, src/anomalies.py, src/csv_analytics.py
+- [ ] Checkpoint 3.6: Orchestrator — process_videos.py; generates events.json + video_hashes.json
+
+**Next action:** Await approval to begin Checkpoint 3.2 (detection module).
 
 ---
 
