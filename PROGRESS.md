@@ -18,7 +18,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
-| 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, TBD |
+| 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
@@ -72,7 +72,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - run_anomalies(): 5 detectors; [] on current footage (expected — thresholds not exceeded in 1000-frame window)
   - tools/validate_checkpoint_35.py: 18/18 checks pass (synthetic fixtures; all boundary conditions tested)
   - Decision 20 recorded: Anomaly 3 reframed (wall-clock time unavailable from frame timestamps)
-- [x] Checkpoint 3.6: Orchestrator — process_videos.py — commit TBD
+- [x] Checkpoint 3.6: Orchestrator — process_videos.py — commit a88819f
   - Full pipeline: 51 events, 142.6s, exit 0, no validation warnings
   - CAM_4 full-video override: genuine warehouse events at t=92.3s captured
   - Anomaly 3 fires (unusual_warehouse_activity — 2 motion frames, both restocking)

@@ -30,7 +30,7 @@ From master plan Section 25:
 | 3.3B | Entry counter | src/entry_counter.py | **COMPLETE** | 12/12 validation — commit 8423d8a |
 | 3.4 | Staff filter + CSV analytics | src/staff_filter.py, src/csv_analytics.py | **COMPLETE** | 12/12 validation — commit d042f03 |
 | 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | **COMPLETE** | 18/18 validation — commit d5a5ee8 |
-| 3.6 | Orchestrator | process_videos.py | **COMPLETE** | 12/12 validation — commit TBD |
+| 3.6 | Orchestrator | process_videos.py | **COMPLETE** | 12/12 validation — commit a88819f |
 
 ---
 
