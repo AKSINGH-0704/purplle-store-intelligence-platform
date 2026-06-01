@@ -5,7 +5,7 @@ Current Phase: Phase 1.5 Zone Calibration — COMPLETE / Phase 2 — READY TO ST
 Current Status: All zones finalized and approved. zones.json LOCKED. Phase 2 CV validation can begin.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
-Phase 1.5 Commit: pending approval
+Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
