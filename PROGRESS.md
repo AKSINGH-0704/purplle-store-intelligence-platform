@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.5 complete)
-Current Status: Funnel and anomaly detectors implemented. All 5 anomaly detectors validated synthetically (18/18 checks pass). Funnel returns warning state on current footage due to CAM_3 Q3 Partial Pass (expected). Anomaly output is [] on current footage (expected — thresholds not exceeded in 1000-frame window). Decision 20 recorded (Anomaly 3 reframe).
+Current Phase: Phase 3 — COMPLETE
+Current Status: All 6 checkpoints complete. process_videos.py runs end-to-end on all 5 cameras. Full pipeline: 51 events, 5 SHA256 hashes, pipeline_summary.json. Anomaly 3 fires (warehouse motion at t=92.3s, captured via CAM_4 full-video override). Phase 3 completion gate passed. Decision 21 recorded.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -18,7 +18,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
-| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoints 3.1–3.4 complete — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03 |
+| 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, TBD |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
@@ -72,9 +72,16 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - run_anomalies(): 5 detectors; [] on current footage (expected — thresholds not exceeded in 1000-frame window)
   - tools/validate_checkpoint_35.py: 18/18 checks pass (synthetic fixtures; all boundary conditions tested)
   - Decision 20 recorded: Anomaly 3 reframed (wall-clock time unavailable from frame timestamps)
-- [ ] Checkpoint 3.6: Orchestrator — process_videos.py; generates events.json + video_hashes.json
+- [x] Checkpoint 3.6: Orchestrator — process_videos.py — commit TBD
+  - Full pipeline: 51 events, 142.6s, exit 0, no validation warnings
+  - CAM_4 full-video override: genuine warehouse events at t=92.3s captured
+  - Anomaly 3 fires (unusual_warehouse_activity — 2 motion frames, both restocking)
+  - pipeline_summary.json: all 8 required keys; fully JSON-serializable
+  - events/events.json, events/video_hashes.json committed as sample pipeline output
+  - tools/validate_checkpoint_36.py: 12/12 checks pass (8 structural + 4 end-to-end)
+  - Decision 21 recorded: CAM_4 max_frames override in orchestrator
 
-**Next action:** Checkpoint 3.6 scope review required before implementation.
+**Phase 3 COMPLETE.** Next action: Phase 4 scope review — FastAPI endpoints.
 
 ---
 
