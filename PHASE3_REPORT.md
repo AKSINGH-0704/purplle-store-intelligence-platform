@@ -1,7 +1,7 @@
 # PHASE 3 REPORT — Backend and Event Pipeline
 
 Phase: 3 — Backend and Event Pipeline
-Status: IN PROGRESS (1 of 6 checkpoints complete)
+Status: IN PROGRESS (2 of 6 checkpoints complete)
 Started: 2026-06-01
 Checkpoint 3.1 Commit: 70f3959
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
@@ -24,8 +24,8 @@ From master plan Section 25:
 | # | Checkpoint | Files | Status | Result |
 |---|-----------|-------|--------|--------|
 | 3.1 | Foundation layer | src/utils.py, src/zone_classifier.py, zones.json | **COMPLETE** | 13/13 validation checks pass — commit 70f3959 |
-| 3.2 | Detection module | src/detection.py | NOT STARTED | — |
-| 3.3 | Entry counter + session manager + background motion | src/entry_counter.py, src/background_motion.py, src/session_manager.py | NOT STARTED | — |
+| 3.2 | Detection layer | src/detection.py, src/background_motion.py | **COMPLETE** | 12/12 validation — commit 5b7e5bf |
+| 3.3 | Entry counter + session manager | src/entry_counter.py, src/session_manager.py | NOT STARTED | Scope review pending |
 | 3.4 | Staff filter | src/staff_filter.py | NOT STARTED | — |
 | 3.5 | Funnel + anomalies + CSV | src/funnel.py, src/anomalies.py, src/csv_analytics.py | NOT STARTED | — |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
@@ -153,6 +153,88 @@ All events share a common envelope: `event_id` (UUID4), `event_type`, `camera`, 
 [PASS] SHA256: deterministic 64-char lowercase hex digest
 [PASS] Integrity: write_hashes + verify_hashes round-trip; 5/5 videos hashed
 [PASS] format_duration: 6 cases correct
+```
+
+---
+
+## Checkpoint 3.2 — Detection Layer
+
+**Commit:** `5b7e5bf`
+**Validation:** `python tools/validate_checkpoint_32.py` — 12/12 PASS
+
+### What was implemented
+
+**`src/detection.py`** — `run_detection(video_path, camera_id, config, zones_cfg)`
+
+Generator function for CAM_1/2/3/5. Yields one dict per processed frame:
+- YOLO inference at `detection_resolution` with `confidence_threshold`
+- Centroid tracker: greedy distance-based matching, `_MAX_DISAPPEARED=10`
+- `classify_zone()` called per matched track per frame
+- Only tracks with active YOLO detection yielded (disappeared tracks excluded)
+
+**`src/background_motion.py`** — `run_background_motion(video_path, config, zones_cfg)`
+
+Returns `(motion_frames, restocking_events)` for CAM_4:
+- Sequential reads (no seek — MOG2 temporal model requirement)
+- `_WARMUP_FRAMES=200`: frames fed to MOG2 for background model building; event emission suppressed during this period. Frame-0 cold-start artifact class eliminated.
+- Zone polygon bounding box applied as mask
+
+### CAM_4 Full Recalibration (Decision 18)
+
+Phase 2 threshold `1631` was invalidated by Checkpoint 3.2 investigation.
+
+**Root cause of Phase 2 failure:** `flicker_areas` sample in `test_warehouse_motion.py` was capped at `CURRENT_THRESHOLD × 3 = 1500 sq px`. Actual floor flicker spans 10,000–50,000 sq px — the Phase 2 tool measured the wrong population.
+
+**Algorithmic separation tested and ruled out:** Four characterisation methods applied across 3,447 post-warmup frames:
+
+| Feature | Short events (≤0.1s) | Long events (≥0.5s) | Precision |
+|---------|---------------------|---------------------|-----------|
+| Contour count | 6.56 mean | 13.44 mean | 0.00 |
+| Compactness | 0.130 | 0.120 | 0.06 |
+| % lower floor px | 76.2% | 67.0% | 0.02 |
+| Duration > 0.4s | — | — | **1.00** (but selects prolonged flicker, not genuine motion) |
+
+All spatial/morphological features were non-separable. Duration was the only precision-1.00 rule but selects prolonged flicker, not genuine activity.
+
+**Zone geometry revision:** CAM_4 polygon bottom raised `y=355 → y=246`, excluding the reflective tile floor band confirmed responsible for 74% of foreground pixels across the full 146s recording.
+
+**Threshold recalibration on revised zone (full video, post-warmup):**
+
+| Statistic | Value |
+|-----------|-------|
+| p99 noise (revised zone) | 21,604 sq px |
+| p99 × 1.30 | **28,085 sq px** (new threshold) |
+| Events at T=28,085 | **2** (both at t=92.3s — confirmed genuine scene change) |
+| False positives eliminated | 449 of 451 |
+
+Genuine event confirmed: frame 2306 (t=92.31s), contour area 63,617 sq px (47% of revised zone) — boxes/items visually rearranged in the shelf area.
+
+**Open item — processing window gap:** `max_frames_per_camera=1000` covers only the first 40s of the 146s CAM_4 recording. Genuine events at t=92s are beyond this window. Deferred to Checkpoint 3.6 orchestrator implementation.
+
+### Validation results
+
+```
+12/12 checks passed -- ALL PASS
+
+[PASS] run_detection: imports without error
+[PASS] run_detection: returns a generator (not a list)
+[PASS] CAM_1: frame dict correct top-level keys and types
+       -> 40 frames; frame_idx=0, proc_idx=0, ts=0.0s, tracks=2
+[PASS] CAM_1: track dict fields correct types and value ranges
+       -> track_id=0, bbox=[477,84,540,205], centroid=[508,144], conf=0.8384, zone='skincare'
+[PASS] CAM_1: track zone field matches classify_zone for every centroid
+       -> 79 track observations; 79 inside polygon (zone='skincare'), 0 outside
+[PASS] CAM_1: at least one track survives >=10 frames (ID stability)
+       -> 2 unique IDs, 2 stable (>=10 frames), longest=40 frames
+[PASS] CAM_2 smoke test: non-zero frames, correct structure
+[PASS] CAM_5 smoke test: non-zero frames, correct structure
+[PASS] CAM_4: run_background_motion returns (list[dict], list[dict])
+       -> motion_frames: 2 entries; restocking_events: 2 entries
+[PASS] CAM_4: motion_frames non-empty; genuine event at t=92s confirmed
+       -> 2 qualifying frames; first=2306, last=2323
+[PASS] CAM_4: all contour_areas above warehouse_motion_threshold=28085
+       -> area range [39738, 63617]
+[PASS] CAM_4: restocking_events structure and field types correct
 ```
 
 ---

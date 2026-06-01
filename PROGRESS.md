@@ -18,7 +18,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
-| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoint 3.1 complete — commit 70f3959 |
+| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoints 3.1 + 3.2 complete — commits 70f3959, 5b7e5bf |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
@@ -46,13 +46,18 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - src/zone_classifier.py: point_in_polygon (ray-casting), classify_zone
   - zones.json: CAM_3 door_x_gate=[250,490] added (Decision 15 carry-forward)
   - tools/validate_checkpoint_31.py: 13/13 checks pass; all 5 video hashes computed
-- [ ] Checkpoint 3.2: Detection module — src/detection.py (YOLO + centroid tracker production implementation)
-- [ ] Checkpoint 3.3: Entry counter + session manager — src/entry_counter.py, src/background_motion.py, src/session_manager.py
+- [x] Checkpoint 3.2: Detection layer — commit 5b7e5bf
+  - src/detection.py: run_detection() generator; YOLO + centroid tracker; CAM_1/2/3/5
+  - src/background_motion.py: run_background_motion(); MOG2 + warm-up suppression; CAM_4
+  - CAM_4 full recalibration (Decision 18): polygon y=355->246; threshold 1631->28085
+  - 451 false-positive events eliminated; 2 confirmed genuine events remain (t=92.3s)
+  - tools/validate_checkpoint_32.py: 12/12 checks pass
+- [ ] Checkpoint 3.3: Entry counter + session manager — src/entry_counter.py, src/session_manager.py (scope review pending)
 - [ ] Checkpoint 3.4: Staff filter — src/staff_filter.py
 - [ ] Checkpoint 3.5: Funnel + anomalies + CSV — src/funnel.py, src/anomalies.py, src/csv_analytics.py
 - [ ] Checkpoint 3.6: Orchestrator — process_videos.py; generates events.json + video_hashes.json
 
-**Next action:** Await approval to begin Checkpoint 3.2 (detection module).
+**Next action:** Checkpoint 3.3 scope review required before implementation.
 
 ---
 
