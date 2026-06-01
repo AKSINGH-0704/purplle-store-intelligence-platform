@@ -19,7 +19,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
 | 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
-| 4 | API Development | **COMPLETE** | Single checkpoint — commit TBD |
+| 4 | API Development | **COMPLETE** | Single checkpoint — commit 9e91023 |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
@@ -85,7 +85,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 
 ## PHASE 4 -- COMPLETE
 
-- [x] Checkpoint 4: FastAPI endpoints -- src/api.py -- commit TBD
+- [x] Checkpoint 4: FastAPI endpoints -- src/api.py -- commit 9e91023
   - All 7 endpoints: /health, /metrics, /funnel, /anomalies, /zone_metrics/{zone}, /events/sample, /dashboard
   - Option C: pipeline_summary.json + events.json loaded once at startup; all responses from _state dict
   - total_dwell_seconds derived directly from zone_dwell events (Option b -- exact sum)
