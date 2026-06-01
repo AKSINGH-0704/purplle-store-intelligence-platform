@@ -1,8 +1,10 @@
 # PHASE 2 REPORT — CV Validation and Parameter Calibration
 
 Phase: 2 — CV Validation
-Status: IN PROGRESS
+Status: IN PROGRESS (1 of 5 checkpoints complete)
 Started: 2026-06-01
+Checkpoint 2.1 Commit: 1c3cc69e7ecfdbb6b30ff2c4fb47d80bf3a2999d
+Checkpoint 2.1 Completed: 2026-06-01
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -32,7 +34,7 @@ From master plan Section 25:
 
 | # | Checkpoint | Tool | Status | Result |
 |---|-----------|------|--------|--------|
-| 2.1 | YOLOv8-nano smoke test | tools/test_yolo.py | COMPLETE | Q1 = YES — see results below |
+| 2.1 | YOLOv8-nano smoke test | tools/test_yolo.py | COMPLETE | Q1 = YES — conf 0.76–0.88 — commit 1c3cc69 |
 | 2.2 | Centroid tracker validation | tools/test_tracker.py | NOT STARTED | — |
 | 2.3 | Entry line crossing validation | tools/test_entry_crossing.py | NOT STARTED | — |
 | 2.4 | Zone visit detection | tools/test_zone_visits.py | NOT STARTED | — |

@@ -17,7 +17,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
-| 2 | CV Validation | IN PROGRESS | Checkpoint 2.1 created (tools/test_yolo.py) — awaiting run |
+| 2 | CV Validation | IN PROGRESS | Checkpoint 2.1 COMPLETE (1c3cc69) — awaiting Checkpoint 2.2 instructions |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
