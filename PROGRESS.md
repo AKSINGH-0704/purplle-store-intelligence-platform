@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 4 — COMPLETE
-Current Status: FastAPI service implemented. All 7 endpoints validated (18/18 checks pass). Fastest endpoint 0.9ms. Option C architecture: pipeline_summary.json loaded once at startup; all responses from in-memory state. CORS enabled. Structured request logging via LOG_BUFFER.
+Current Phase: Phase 5 — COMPLETE
+Current Status: Streamlit 5-tab dashboard implemented. All tabs consume single cached /dashboard call. Plotly funnel (stages 2-4), revenue charts, system health with video hashes. total_dwell from API exact value (Option b). 17/17 structural validation checks pass.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -20,7 +20,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
 | 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
 | 4 | API Development | **COMPLETE** | Single checkpoint — commit 9e91023 |
-| 5 | Dashboard | NOT STARTED | — |
+| 5 | Dashboard | **COMPLETE** | Single checkpoint -- commit TBD |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
 
@@ -93,7 +93,22 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - Rerunning process_videos.py requires API restart (documented in PHASE4_REPORT.md)
   - tools/validate_checkpoint_4.py: 18/18 checks pass (TestClient, all endpoints, response times)
 
-**Phase 4 COMPLETE.** Next action: Phase 5 scope review -- Streamlit dashboard.
+**Phase 4 COMPLETE.**
+
+## PHASE 5 -- COMPLETE
+
+- [x] Checkpoint 5: Streamlit dashboard -- src/dashboard.py -- commit TBD
+  - 5 tabs: Executive Overview, Customer Journey, Zone Intelligence, Revenue Intelligence, System Health
+  - Single @st.cache_data(ttl=60) fetch_dashboard() call feeds all tabs
+  - Plotly go.Funnel for stages 2-4; entry (0) and transactions (24) as separate st.metric cards
+  - st.warning() for funnel_validation=="warning"; full disclaimer always visible (Tab 2)
+  - total_dwell_seconds from API zone_totals key (Option b -- server-side exact sum, not avg*count)
+  - API failure: requests.RequestException + st.error() + st.stop() prevents partial render
+  - api.py: zone_totals added to /dashboard response to support exact consumption
+  - requirements.txt: plotly>=5.0.0 added
+  - tools/validate_checkpoint_5.py: 17/17 structural checks pass
+
+**Phase 5 COMPLETE.** Next: Phase 6 (Docker) -- not yet started.
 
 ---
 
