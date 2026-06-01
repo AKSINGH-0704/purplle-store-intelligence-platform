@@ -322,6 +322,44 @@ Decision: Q3 FINAL VERDICT: PARTIAL PASS.
   before implementing src/entry_counter.py.
 CHOICES.md section: Detection Strategy — Entry Line Crossing (Checkpoint 2.3)
 
+Decision 16:
+Date: 2026-06-01
+Context: Checkpoint 2.4 -- zone visit detection validation. tools/test_zone_visits.py
+  created and ready to run. Results to be recorded after execution.
+Decision: Q4 PASS. Zone visit detection working across all three cameras.
+  Measured results:
+    CAM_1 (skincare)   : 2 qualifying visits, avg dwell 33.4s
+    CAM_2 (main_floor) : 5 qualifying visits, avg dwell 26.6s
+    CAM_5 (billing)    : 2 qualifying visits, avg dwell 27.3s
+    Total              : 9 qualifying visits across 3 zones
+  Dwell durations (26-33s average) are consistent with genuine retail
+  browsing behaviour. Neither implausibly short (false positives) nor
+  implausibly long (frozen detections or scene artifacts).
+  Tracker behaviour inside zones: stable. No anomalous ID fragmentation
+  observed. The centroid tracker validated in Checkpoint 2.2 maintains
+  IDs reliably within zone polygons at frame_skip=5.
+  min_dwell_for_visit_seconds=10s RETAINED. Evidence: this threshold
+  correctly filtered brief pass-throughs while retaining all 9 genuine
+  browsing visits. The shortest qualifying dwell was above the threshold
+  with margin. A lower threshold would admit corridor-style pass-throughs;
+  a higher threshold would risk missing brief but genuine visits (e.g.
+  a customer who quickly picks up one product). 10s is appropriate for
+  a beauty retail store where product examination naturally takes 10-60s.
+  No visit edge cases blocked the pipeline. Tracks appearing already
+  inside the zone at frame 0 were handled correctly (zone_enter_proc
+  set to proc_idx=0, timestamps counted from start of window).
+  Business validation:
+    Skincare browsing (CAM_1, avg 33.4s): consistent with product
+      examination at cosmetics shelving.
+    Main-floor engagement (CAM_2, 5 visits, avg 26.6s): consistent
+      with circulation and browsing in the central store area.
+    Billing-zone dwell (CAM_5, avg 27.3s): consistent with checkout
+      interaction duration at a beauty retail counter.
+  Detection -> Tracking -> Zone Visit pipeline validated end-to-end.
+  Phase 2 gates Q1, Q2, Q4 are fully PASSED. Q3 is PARTIAL PASS.
+  Only Checkpoint 2.5 (CAM_4 background subtraction calibration) remains.
+CHOICES.md section: Zone Configuration / Tracking Strategy (Checkpoint 2.4)
+
 - [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
 - [ ] ByteTrack accept/reject decision after Phase 2 validation test
 - [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing

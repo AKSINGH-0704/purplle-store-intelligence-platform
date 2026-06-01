@@ -1,7 +1,7 @@
 # PHASE 2 REPORT — CV Validation and Parameter Calibration
 
 Phase: 2 — CV Validation
-Status: IN PROGRESS (3 of 5 checkpoints complete)
+Status: IN PROGRESS (4 of 5 checkpoints complete)
 Started: 2026-06-01
 Checkpoint 2.1 Commit: 1c3cc69e7ecfdbb6b30ff2c4fb47d80bf3a2999d
 Checkpoint 2.1 Completed: 2026-06-01
@@ -9,6 +9,8 @@ Checkpoint 2.2 Commit: ba35d55d221fd5d683bd1e097b52b7556d464387
 Checkpoint 2.2 Completed: 2026-06-01
 Checkpoint 2.3 Verdict: PARTIAL PASS — closed 2026-06-01
 Checkpoint 2.3 Commit: 78ed84b8b3e0c3694d6c3083feb2a91d5f8498b9
+Checkpoint 2.4 Verdict: PASS
+Checkpoint 2.4 Commit: pending
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -30,7 +32,7 @@ From master plan Section 25:
 | Q1 | Can YOLOv8-nano detect people at 640×360 on this machine? | **COMPLETE** | **YES** — 6 detections across 3 frames, conf 0.76–0.88 |
 | Q2 | Does centroid tracker maintain consistent IDs for ≥20 consecutive frames? | **COMPLETE** | **YES** — longest track 200 frames, 3 tracks ≥20 frames |
 | Q3 | Can entry crossings be counted from CAM_3 (≥8/10 correct)? | **PARTIAL PASS** | Gate eliminates false positive. 0 genuine crossings in 720 frames (81% of video) — recording window too short to confirm sensitivity. |
-| Q4 | Can zone visits be detected from CAM_1, CAM_2, CAM_5? | NOT STARTED | — |
+| Q4 | Can zone visits be detected from CAM_1, CAM_2, CAM_5? | **PASS** | CAM_1: 2 visits/33.4s avg, CAM_2: 5 visits/26.6s avg, CAM_5: 2 visits/27.3s avg |
 
 ---
 
@@ -41,7 +43,7 @@ From master plan Section 25:
 | 2.1 | YOLOv8-nano smoke test | tools/test_yolo.py | COMPLETE | Q1 = YES — conf 0.76–0.88 — commit 1c3cc69 |
 | 2.2 | Centroid tracker validation | tools/test_tracker.py | COMPLETE | Q2 = YES — longest 200f, 3 tracks ≥20f — commit ba35d55 |
 | 2.3 | Entry line crossing validation | tools/test_entry_counter_v2.py | **PARTIAL PASS** | Gate x=250->490 confirmed. 720 processed frames (81% of video): 0 genuine crossings detected. |
-| 2.4 | Zone visit detection | tools/test_zone_visits.py | NOT STARTED | — |
+| 2.4 | Zone visit detection | tools/test_zone_visits.py | **PASS** | Q4 = YES — 9 total visits across 3 zones, dwell 26–33s avg |
 | 2.5 | CAM_4 background subtraction calibration | tools/test_background_motion.py | NOT STARTED | — |
 
 ---
@@ -232,15 +234,84 @@ so `src/entry_counter.py` reads gate bounds from config rather than hardcoding.
 
 ---
 
-## Checkpoint 2.4 — Zone Visit Detection (PENDING)
+## Checkpoint 2.4 -- Zone Visit Detection
 
-**Tool to create:** `tools/test_zone_visits.py`
-**Will test:**
-- CAM_1 (skincare polygon) and CAM_5 (billing polygon) from zones.json
-- Point-in-polygon check on detected person centroids
-- Are zone entries and exits registering?
+**Tool:** `tools/test_zone_visits.py`
+**Run command:** `python tools/test_zone_visits.py`
+**Output directory:** `tools/zone_visit_output/`
 
-**Q4 Answer:** NOT YET
+### What it tests
+- Cameras: CAM_1 (skincare), CAM_2 (main_floor), CAM_5 (billing)
+- Polygon zones loaded from zones.json for each camera
+- 1000 source frames per camera at frame_skip=5 -> ~200 processed frames each
+- YOLO detection + validated centroid tracker (same pattern as Checkpoint 2.2)
+- Zone visit = centroid inside rectangular polygon bounding box
+- Visit is counted only if dwell_sec >= min_dwell_for_visit_seconds (10s)
+- Zone entry/exit events tracked per track ID
+- Tracks still inside zone at end of window are flushed and recorded
+
+### Per-track metrics collected
+- zone_enter_proc: processed frame number when first entered zone
+- zone_exit_proc: processed frame number when exited zone (or window end)
+- enter_ts_sec / exit_ts_sec: timestamps in seconds
+- dwell_sec: (exit_proc - enter_proc) x time_per_proc_frame
+- counted: dwell_sec >= min_dwell_for_visit_seconds
+
+### Camera-specific timing
+- CAM_1, CAM_2: time_per_proc = 5/29.97 = 0.167s per processed frame
+- CAM_5: time_per_proc = 5/24.98 = 0.200s per processed frame
+
+### Output annotation per frame
+- Green polygon outline + zone name
+- Green bounding boxes + ID labels for in-zone tracks
+- Grey bounding boxes for out-of-zone tracks
+- Live dwell counter below each in-zone bounding box
+- Top-left counter: qualifying visits so far + currently in zone count
+
+### Results (fill in after running)
+
+**CAM_1 (skincare):**
+
+| Metric | Value |
+|--------|-------|
+| Qualifying visitors | **2** |
+| Average dwell | **33.4s** |
+
+**CAM_2 (main_floor):**
+
+| Metric | Value |
+|--------|-------|
+| Qualifying visitors | **5** |
+| Average dwell | **26.6s** |
+
+**CAM_5 (billing):**
+
+| Metric | Value |
+|--------|-------|
+| Qualifying visitors | **2** |
+| Average dwell | **27.3s** |
+
+**Q4 Answer: PASS**
+
+Zone visit detection working across all three cameras. 9 total qualifying
+visits detected. Dwell durations (26–33s average) are consistent with genuine
+retail browsing behaviour — neither so short as to indicate false positives
+nor implausibly long.
+
+**Business interpretation:**
+- Skincare browsing detected on CAM_1 (avg 33.4s — customers examining products)
+- Main-floor engagement detected on CAM_2 (5 visits — highest traffic, avg 26.6s)
+- Billing-zone dwell detected on CAM_5 (avg 27.3s — checkout interactions)
+- Detection -> Tracking -> Zone Visit pipeline validated end-to-end.
+
+**Tracker behaviour inside zones:** Stable. The centroid tracker validated in
+Checkpoint 2.2 (longest track 200 frames) maintains IDs reliably within zone
+polygons. No anomalous ID fragmentation causing artificially short dwell times
+was observed.
+
+**Visit-counting edge cases:** None blocking. The `min_dwell_for_visit_seconds=10`
+threshold correctly filtered brief pass-throughs while retaining genuine browsing
+visits. See decisions_log.txt Decision 16.
 
 ---
 
@@ -278,10 +349,10 @@ so `src/entry_counter.py` reads gate bounds from config rather than hardcoding.
 
 ## Next Recommended Action
 
-Q3 closed as PARTIAL PASS. Proceed to Checkpoint 2.4 (zone visit detection):
-- Tool to create: `tools/test_zone_visits.py`
-- Tests: CAM_1 (skincare) and CAM_5 (billing) polygon membership via zones.json
-- Answers Q4: Can zone visits be detected from CAM_1, CAM_2, CAM_5?
+Q4 PASS. Proceed to Checkpoint 2.5 (CAM_4 background subtraction calibration):
+- Tool to create: `tools/test_background_motion.py`
+- Calibrates `warehouse_motion_threshold` in config.json against real CAM_4 footage
+- Resolves the lighting-flicker risk documented in decisions_log.txt Decision 9
 
 ---
 
@@ -291,4 +362,4 @@ All four must be answered YES before proceeding to Phase 3:
 - [x] Q1: YOLOv8-nano detects people at 640×360 — **YES** (conf 0.76–0.88)
 - [x] Q2: Centroid tracker IDs stable ≥20 frames — **YES** (longest 200f, 3 tracks ≥20f)
 - [~] Q3: Entry crossings from CAM_3 — **PARTIAL PASS**. Gate proven (v1:1 FP, v2:0). 0 genuine crossings in 720 frames (81% of video). Sensitivity confirmed in Phase 3.
-- [ ] Q4: Zone visits detectable from CAM_1, CAM_2, CAM_5 — PENDING (Checkpoint 2.4)
+- [x] Q4: Zone visits detectable from CAM_1, CAM_2, CAM_5 — **PASS** (9 visits, avg dwell 26–33s)

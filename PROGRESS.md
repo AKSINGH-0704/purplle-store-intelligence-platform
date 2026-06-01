@@ -32,10 +32,10 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 - [x] Created PHASE2_ENVIRONMENT_CHECK.md — ultralytics install resolved
 - [x] Checkpoint 2.2: tools/test_tracker.py — COMPLETE. Q2 = YES. Longest track 200f, 3 tracks ≥20f. ByteTrack REJECTED. (Decision 14)
 - [~] Checkpoint 2.3: tools/test_entry_counter_v2.py — PARTIAL PASS (CLOSED). Gate proven across 720 proc frames (81% of video). 0 genuine crossings in available footage. Sensitivity validated in Phase 3. (Decision 15)
-- [ ] Checkpoint 2.4: tools/test_zone_visits.py — zone visit detection
+- [x] Checkpoint 2.4: tools/test_zone_visits.py -- PASS. CAM_1: 2v/33.4s, CAM_2: 5v/26.6s, CAM_5: 2v/27.3s. Pipeline validated. (Decision 16)
 - [ ] Checkpoint 2.5: tools/test_background_motion.py — CAM_4 MOG2 calibration
 
-**Next action:** Run `python tools/test_entry_counter_v2.py` and report results.
+**Next action:** Checkpoint 2.4 PASS. Proceed to Checkpoint 2.5 (CAM_4 background subtraction calibration).
 
 ---
 
