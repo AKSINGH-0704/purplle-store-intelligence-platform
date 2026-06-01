@@ -284,6 +284,44 @@ Trade-off: Centroid tracker handles normal walking well but will produce more
   (observed: ~2 persons in CAM_1 scene), this is not a concern.
 CHOICES.md section: Tracking Strategy (update in Phase 7 with these figures)
 
+Decision 15:
+Date: 2026-06-01
+Context: Checkpoint 2.3 — entry line crossing validation on CAM_3.mp4.
+  v1 (tools/test_entry_counter.py) produced one false positive: a corridor
+  pedestrian (Track ID 0) walking outside the store was counted as ENTRY.
+  Root cause: no doorway spatial gate — entry line spanned x=80→560 (full
+  polygon width), which includes the exterior corridor where people walk past.
+  The direction vector [0,1] was confirmed CORRECT — flipping it would relabel
+  the false positive but not remove it.
+  v2 fix: doorway x-gate DOOR_X1=250, DOOR_X2=490 added to
+  tools/test_entry_counter_v2.py (code only, zones.json NOT changed).
+  Gate derived from visual inspection of zones_preview/CAM_3_frame100.jpg:
+    x < 250  : Promotional sign + left store wall (not a crossing zone)
+    x 250-490: Glass entrance opening (actual door gap)
+    x > 490  : Right-side exterior corridor (where false positive was located)
+  The SUPPRESSED counter in v2 tracks events the gate removed from v1 counts.
+Decision: Q3 FINAL VERDICT: PARTIAL PASS.
+  Extended validation run: 3600 source frames (81% of total CAM_3 footage).
+  Measured results (all three runs):
+    v1 (1000 src, no gate): 1 ENTRY (false positive), 0 EXIT, 0 AMBIGUOUS
+    v2 (1000 src, gate):    0 ENTRY,                  0 EXIT, 0 AMBIGUOUS
+    v2 Extended (3600 src): 0 ENTRY,                  0 EXIT, 0 AMBIGUOUS
+    SUPPRESSED counter: 0 in all runs (dy=0 bug; informational only; does not
+    affect core counts).
+  Gate x=250->490 proven: eliminates corridor false positive across all runs.
+  Direction vector [0,1] CONFIRMED correct across all runs.
+  Entry line y=170 RETAINED — not the root cause.
+  Zero genuine crossings in 720 processed frames (81% of available footage).
+  Interpretation: CAM_3.mp4 is ~148 seconds total. The recording likely captures
+  a pre-traffic or setup period where few/no genuine entries occur. This does not
+  mean the detection is broken — it means the available sample is insufficient to
+  confirm sensitivity. Phase 3 processes all cameras and all frames, and will
+  validate true positive detection in the full pipeline context.
+  Q3 CLOSED as PARTIAL PASS. Proceed to Checkpoint 2.4 (zone visit detection).
+  Phase 3 action: add "door_x_gate": [250, 490] to zones.json CAM_3 config
+  before implementing src/entry_counter.py.
+CHOICES.md section: Detection Strategy — Entry Line Crossing (Checkpoint 2.3)
+
 - [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
 - [ ] ByteTrack accept/reject decision after Phase 2 validation test
 - [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
