@@ -67,7 +67,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - Rule 1 (roundtrip) dead code on current footage (0 CAM_3 crossings); Rules 2+3 operational
   - run_csv_analytics(): 24 transactions, GMV 44,920, 6 categories, 5 salespeople — all 11 metrics
   - tools/validate_checkpoint_34.py: 12/12 checks pass; Decision 19 recorded
-- [x] Checkpoint 3.5: Funnel + anomaly detectors — src/funnel.py, src/anomalies.py — commit TBD
+- [x] Checkpoint 3.5: Funnel + anomaly detectors — src/funnel.py, src/anomalies.py — commit d5a5ee8
   - run_funnel(): 5-stage aggregate funnel; monotonicity validation (warning on current footage — CAM_3 Q3)
   - run_anomalies(): 5 detectors; [] on current footage (expected — thresholds not exceeded in 1000-frame window)
   - tools/validate_checkpoint_35.py: 18/18 checks pass (synthetic fixtures; all boundary conditions tested)

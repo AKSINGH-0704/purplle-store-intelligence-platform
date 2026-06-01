@@ -28,7 +28,7 @@ From master plan Section 25:
 | 3.3A | Session manager | src/session_manager.py | **COMPLETE** | 12/12 validation — commit 7b5b9c8 |
 | 3.3B | Entry counter | src/entry_counter.py | **COMPLETE** | 12/12 validation — commit 8423d8a |
 | 3.4 | Staff filter + CSV analytics | src/staff_filter.py, src/csv_analytics.py | **COMPLETE** | 12/12 validation — commit d042f03 |
-| 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | **COMPLETE** | 18/18 validation — commit TBD |
+| 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | **COMPLETE** | 18/18 validation — commit d5a5ee8 |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
 
 ---
@@ -444,7 +444,7 @@ entry_count = sum(
 
 ## Checkpoint 3.5 — Funnel + Anomaly Detectors
 
-**Commit:** TBD
+**Commit:** `d5a5ee8`
 **Validation:** `python tools/validate_checkpoint_35.py` — 18/18 PASS
 
 ### What was implemented
