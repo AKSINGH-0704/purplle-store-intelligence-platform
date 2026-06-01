@@ -28,7 +28,7 @@ From master plan Section 25:
 | 3.3A | Session manager | src/session_manager.py | **COMPLETE** | 12/12 validation — commit 7b5b9c8 |
 | 3.3B | Entry counter | src/entry_counter.py | **COMPLETE** | 12/12 validation — commit 8423d8a |
 | 3.4 | Staff filter + CSV analytics | src/staff_filter.py, src/csv_analytics.py | **COMPLETE** | 12/12 validation — commit d042f03 |
-| 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | NOT STARTED | Scope review pending |
+| 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | **COMPLETE** | 18/18 validation — commit TBD |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
 
 ---
@@ -442,11 +442,164 @@ entry_count = sum(
 
 ---
 
+## Checkpoint 3.5 — Funnel + Anomaly Detectors
+
+**Commit:** TBD
+**Validation:** `python tools/validate_checkpoint_35.py` — 18/18 PASS
+
+### What was implemented
+
+**`src/funnel.py`** — `run_funnel(events, csv_result, staff_result, config) -> dict`
+
+Assembles the five-stage aggregate customer funnel from upstream module outputs.
+No file I/O — caller owns events.json load.
+
+| Stage | Source | Config footage value |
+|-------|--------|---------------------|
+| Stage 1 — entry_count | crossing_entry, CAM_3, staff-filtered | 0 |
+| Stage 2 — main_floor visits | zone_dwell, CAM_2 | 5 (avg 26.2s) |
+| Stage 3 — skincare visits | zone_dwell, CAM_1 | 2 (avg 33.2s) |
+| Stage 4 — billing interactions | zone_dwell, CAM_5, staff-filtered | 2 (avg 27.0s) |
+| Stage 5 — transaction_count | csv_result["transactions"] | 24 |
+
+**Monotonicity validation:**
+- Check A: billing should not exceed entry_count. Fires if billing > entry_count.
+- Check B: main_floor visits should be >= skincare visits. Fires if main_floor < skincare.
+
+**IMPORTANT — Funnel WARNING state is caused by CAM_3 sensitivity limitations:**
+`run_funnel()` returns `funnel_validation: "warning"` on current footage because
+billing (2) > entries (0). This is a known, expected consequence of the CAM_3 Q3
+Partial Pass status. The available footage contains no confirmed store-entry crossing
+events (0 crossings in 720 processed frames during Phase 2; same result in Phase 3
+with 1000-frame window). The warning is a data quality note, not a system failure.
+The monotonicity check is working correctly — it accurately reflects that funnel
+stage ordering cannot be verified until CAM_3 real-world sensitivity is confirmed.
+
+The `validation_notes` field in the funnel output contains an explicit explanation
+of this limitation, and the `disclaimer` field (531 chars) explains the CAM_3 Q3
+status, the video/CSV date mismatch (16-04-2026 vs 10-04-2026), and the aggregate-
+only nature of all funnel counts.
+
+**`src/anomalies.py`** — `run_anomalies(events, staff_result, config) -> list`
+
+Five anomaly detectors. No file I/O — caller owns events.json load.
+
+| Anomaly | Type | Threshold | Camera | Status on footage |
+|---------|------|-----------|--------|-------------------|
+| 1 — Extended dwell | zone_dwell >= 900s | `_EXTENDED_DWELL_THRESHOLD_SECONDS=900` (module constant) | CAM_1, CAM_5 | Not triggered — max dwell 34s |
+| 2 — Queue buildup | occupancy > 2 for >= 300s | `queue_occupancy_threshold`, `queue_duration_threshold_seconds` | CAM_5 | Not triggered — max duration ~20s |
+| 3 — Warehouse activity | any warehouse_motion event | n/a | CAM_4 | Not triggered — 0 events in 1000-frame window |
+| 4 — Zone abandonment | CAM_3 entry, no CAM_1/CAM_2 visit in 300s | `zone_abandonment_window_seconds` | CAM_3 | Not triggered — 0 entries |
+| 5 — Repeat zone visits | > 3 qualifying visits, same zone | `repeat_visit_threshold`, `min_dwell_for_visit_seconds` | CAM_1, CAM_2, CAM_5 | Not triggered — max 1 visit/track |
+
+**IMPORTANT — Empty anomaly output on current footage is an expected result, not a failure:**
+`run_anomalies()` returns `[]` on current footage. All five detectors are correctly
+implemented and validated synthetically. No anomaly fires because the 1000-frame
+processing window (covering ~33s of footage) does not produce the conditions required
+to exceed any threshold:
+- Extended dwell (900s) requires 15 minutes of continuous presence — far beyond the window.
+- Queue buildup (300s duration) requires 5 minutes of high occupancy — far beyond the window.
+- Warehouse motion (any event) requires frames beyond t=33s where genuine events occur at t=92s.
+- Zone abandonment requires CAM_3 crossing events, which are absent (Q3 Partial Pass).
+- Repeat visits require >3 visits per track — footage is too short for this pattern.
+
+An empty anomaly list with HTTP 200 from the API endpoint is the correct, honest
+response. The detector logic is verified by 18 synthetic checks in
+`tools/validate_checkpoint_35.py`.
+
+**IMPORTANT — Anomaly 4 is synthetically validated but not exercised on current footage:**
+Anomaly 4 (zone abandonment) requires CAM_3 crossing events as input. The current
+CAM_3 footage contains 0 confirmed crossing events (Q3 Partial Pass). Anomaly 4's
+logic is proven correct by synthetic fixtures in the validator:
+- Fire: `crossing_entry` at CAM_3 with no zone_dwell from CAM_1/CAM_2 within 300s.
+- No-fire: `crossing_entry` followed by zone_dwell from CAM_2 within 300s.
+The 70% window cutoff (entries after the first 70% of footage are skipped) is also
+tested. Real-world validation of Anomaly 4 requires footage containing confirmed
+entries that are not followed by zone visits.
+
+**IMPORTANT — Anomaly 3 was intentionally reframed because wall-clock recording metadata is unavailable:**
+The master plan describes Anomaly 3 as "detects significant motion outside a
+configurable expected time window." This implies hour-of-day filtering. However,
+`run_background_motion()` returns `timestamp_seconds` as seconds from video start,
+not wall-clock time. Converting frame timestamps to hour-of-day requires knowing
+when the recording started, which is not available in any project file.
+Anomaly 3 is reframed to fire on any warehouse_motion event as an operational
+alert — the operator is recommended to verify the motion was a scheduled restocking
+operation. This is documented in decisions_log.txt Decision 20. If recording
+metadata becomes available, hour-of-day filtering can be added using config keys
+`warehouse_expected_start_hour` and `warehouse_expected_end_hour`.
+
+### Output contracts
+
+```python
+# run_funnel() returns:
+{
+    "entry_count":          int,          # Stage 1
+    "zone_visits":          {             # Stages 2-4
+        "main_floor":       int,
+        "skincare":         int,
+        "billing":          int,
+    },
+    "avg_dwell_seconds":    {             # per zone
+        "main_floor":       float,
+        "skincare":         float,
+        "billing":          float,
+    },
+    "transaction_count":    int,          # Stage 5
+    "staff_filtered_count": int,
+    "funnel_validation":    "pass" | "warning",
+    "validation_notes":     list[str],    # explains any warnings
+    "disclaimer":           str,          # aggregate-only + date mismatch note
+}
+
+# run_anomalies() returns:
+[
+    {
+        "type":                    str,   # "extended_dwell" | "queue_buildup" | etc.
+        "severity":                str,   # "warning" | "info"
+        "message":                 str,
+        "business_recommendation": str,
+        "triggered_at":            str,   # ISO8601 from event.processed_at
+        "camera":                  str,
+        "zone":                    str,
+    },
+    ...
+]
+# Returns [] when no thresholds are exceeded (correct result on current footage).
+```
+
+### Validation results
+
+```
+18/18 checks passed -- ALL PASS
+
+[PASS] funnel + anomalies: imports without error
+[PASS] funnel: output schema has all required keys and correct types
+[PASS] funnel Check A: billing > entries triggers warning
+[PASS] funnel Check A: billing <= entries does not trigger warning
+[PASS] funnel Check B: skincare > main_floor triggers warning
+[PASS] funnel: CAM_5 staff tracks excluded from billing count
+[PASS] funnel: disclaimer is a non-empty informative string
+[PASS] Anomaly 1: extended dwell fires when dwell_seconds >= 900s
+[PASS] Anomaly 1: does not fire when dwell_seconds < 900s
+[PASS] Anomaly 2: queue buildup fires (3+ persons for >= 300s)
+[PASS] Anomaly 2: does not fire when occupancy <= threshold
+[PASS] Anomaly 3: warehouse activity fires on any warehouse_motion event
+[PASS] Anomaly 3: does not fire when no warehouse_motion events
+[PASS] Anomaly 4: zone abandonment fires (entry, no zone visit follows)
+[PASS] Anomaly 4: does not fire when zone visit follows entry
+[PASS] Anomaly 5: repeat visits fires (4 qualifying visits, threshold=3)
+[PASS] Anomaly 5: does not fire at exactly the threshold (needs >)
+[PASS] Anomaly schema: all emitted anomalies have required keys and valid types
+```
+
+---
+
 ## Decisions to Record After Each Checkpoint
 
-- Decision 18: Detection module architecture choices (frame_skip vs sequential, batch size)
-- Decision 19: session_manager dwell merge implementation detail
-- Decision 20: process_videos.py orchestration strategy (sequential vs parallel per camera)
+- Decision 18: CAM_4 zone geometry revision and threshold recalibration — RECORDED
+- Decision 19: staff_filtered field architecture (runtime classification is authoritative) — RECORDED
+- Decision 20: Anomaly 3 reframe (wall-clock time unavailable from frame timestamps) — RECORDED
 
 ---
 

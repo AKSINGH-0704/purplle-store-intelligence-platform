@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.4 complete)
-Current Status: Staff filter and CSV analytics implemented. Revenue metrics computed from actual POS CSV. Staff classification architecture confirmed (runtime output is source of truth). 12/12 validation checks pass.
+Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.5 complete)
+Current Status: Funnel and anomaly detectors implemented. All 5 anomaly detectors validated synthetically (18/18 checks pass). Funnel returns warning state on current footage due to CAM_3 Q3 Partial Pass (expected). Anomaly output is [] on current footage (expected — thresholds not exceeded in 1000-frame window). Decision 20 recorded (Anomaly 3 reframe).
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -67,10 +67,14 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - Rule 1 (roundtrip) dead code on current footage (0 CAM_3 crossings); Rules 2+3 operational
   - run_csv_analytics(): 24 transactions, GMV 44,920, 6 categories, 5 salespeople — all 11 metrics
   - tools/validate_checkpoint_34.py: 12/12 checks pass; Decision 19 recorded
-- [ ] Checkpoint 3.5: Funnel + anomalies + CSV — src/funnel.py, src/anomalies.py, src/csv_analytics.py
+- [x] Checkpoint 3.5: Funnel + anomaly detectors — src/funnel.py, src/anomalies.py — commit TBD
+  - run_funnel(): 5-stage aggregate funnel; monotonicity validation (warning on current footage — CAM_3 Q3)
+  - run_anomalies(): 5 detectors; [] on current footage (expected — thresholds not exceeded in 1000-frame window)
+  - tools/validate_checkpoint_35.py: 18/18 checks pass (synthetic fixtures; all boundary conditions tested)
+  - Decision 20 recorded: Anomaly 3 reframed (wall-clock time unavailable from frame timestamps)
 - [ ] Checkpoint 3.6: Orchestrator — process_videos.py; generates events.json + video_hashes.json
 
-**Next action:** Checkpoint 3.3 scope review required before implementation.
+**Next action:** Checkpoint 3.6 scope review required before implementation.
 
 ---
 
