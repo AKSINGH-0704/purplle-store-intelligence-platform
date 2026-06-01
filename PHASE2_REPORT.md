@@ -12,7 +12,7 @@ Checkpoint 2.3 Commit: 78ed84b8b3e0c3694d6c3083feb2a91d5f8498b9
 Checkpoint 2.4 Verdict: PASS
 Checkpoint 2.4 Commit: b372d9ecfd092913bd797f1b4b49e5e3bb4b6562
 Checkpoint 2.5 Verdict: PASS
-Checkpoint 2.5 Commit: TBD
+Checkpoint 2.5 Commit: ef92fce
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -46,7 +46,7 @@ From master plan Section 25:
 | 2.2 | Centroid tracker validation | tools/test_tracker.py | COMPLETE | Q2 = YES — longest 200f, 3 tracks ≥20f — commit ba35d55 |
 | 2.3 | Entry line crossing validation | tools/test_entry_counter_v2.py | **PARTIAL PASS** | Gate x=250->490 confirmed. 720 processed frames (81% of video): 0 genuine crossings detected. |
 | 2.4 | Zone visit detection | tools/test_zone_visits.py | **PASS** | Q4 = YES — 9 total visits across 3 zones, dwell 26–33s avg |
-| 2.5 | CAM_4 background subtraction calibration | tools/test_warehouse_motion.py | **COMPLETE** | warehouse_motion_threshold = 1631 sq px — commit TBD |
+| 2.5 | CAM_4 background subtraction calibration | tools/test_warehouse_motion.py | **COMPLETE** | warehouse_motion_threshold = 1631 sq px — commit ef92fce |
 
 ---
 
