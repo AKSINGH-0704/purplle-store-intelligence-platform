@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.3A complete)
-Current Status: Session manager implemented. Zone visit tracking for CAM_1/2/5 validated against Phase 2 ground truth. 12/12 validation checks pass.
+Current Phase: Phase 3 — IN PROGRESS (Checkpoint 3.3B complete)
+Current Status: Entry counter implemented. Crossing mechanics and gate behaviour validated synthetically (12/12 checks pass). Real-world sensitivity unverified — Q3 remains Partial Pass pending end-to-end validation.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -18,7 +18,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
-| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoints 3.1–3.3A complete — commits 70f3959, 5b7e5bf, 7b5b9c8 |
+| 3 | Backend and Event Pipeline | **IN PROGRESS** | Checkpoints 3.1–3.3B complete — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
@@ -56,7 +56,12 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - run_zone_visits(): zone entry/exit/dwell for CAM_1, CAM_2, CAM_5
   - Dwell merge rule (4-condition identity gate), disappeared-track policy (Option A)
   - tools/validate_checkpoint_33a.py: 12/12 checks pass; Phase 2 ground truth matched
-- [ ] Checkpoint 3.3B: Entry counter — src/entry_counter.py (scope approved, implementation pending commit)
+- [x] Checkpoint 3.3B: Entry counter — src/entry_counter.py — commit 8423d8a
+  - run_entry_crossings(): CAM_3 line crossing with door x-gate [250,490] and direction classification
+  - _check_crossing(): extracted private helper; directly testable by validator
+  - camera_id guard (ValueError for non-CAM_3)
+  - tools/validate_checkpoint_33b.py: 12/12 checks pass (synthetic logic + smoke run)
+  - Q3 status: mechanics validated; sensitivity unverified (0 crossings in Phase 2 footage)
 - [ ] Checkpoint 3.4: Staff filter — src/staff_filter.py
 - [ ] Checkpoint 3.5: Funnel + anomalies + CSV — src/funnel.py, src/anomalies.py, src/csv_analytics.py
 - [ ] Checkpoint 3.6: Orchestrator — process_videos.py; generates events.json + video_hashes.json

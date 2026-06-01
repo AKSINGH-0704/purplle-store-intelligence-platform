@@ -26,7 +26,7 @@ From master plan Section 25:
 | 3.1 | Foundation layer | src/utils.py, src/zone_classifier.py, zones.json | **COMPLETE** | 13/13 validation checks pass — commit 70f3959 |
 | 3.2 | Detection layer | src/detection.py, src/background_motion.py | **COMPLETE** | 12/12 validation — commit 5b7e5bf |
 | 3.3A | Session manager | src/session_manager.py | **COMPLETE** | 12/12 validation — commit 7b5b9c8 |
-| 3.3B | Entry counter | src/entry_counter.py | NOT STARTED | Scope approved |
+| 3.3B | Entry counter | src/entry_counter.py | **COMPLETE** | 12/12 validation — commit 8423d8a |
 | 3.4 | Staff filter | src/staff_filter.py | NOT STARTED | — |
 | 3.5 | Funnel + anomalies + CSV | src/funnel.py, src/anomalies.py, src/csv_analytics.py | NOT STARTED | — |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
@@ -287,6 +287,64 @@ Processes one YOLO camera (CAM_1, CAM_2, or CAM_5). Raises `ValueError` for any 
 ```
 
 Phase 2 ground truth reproduced exactly: CAM_1=2, CAM_2=5, CAM_5=2, total=9.
+
+---
+
+## Checkpoint 3.3B — Entry Counter
+
+**Commit:** `8423d8a`
+**Validation:** `python tools/validate_checkpoint_33b.py` — 12/12 PASS
+
+### What was implemented
+
+**`src/entry_counter.py`** — `run_entry_crossings(video_path, camera_id, config, zones_cfg, events_path)`
+
+Processes CAM_3 only. Raises `ValueError` for any other camera_id.
+
+| Component | Description |
+|-----------|-------------|
+| `_check_crossing()` | Private helper: gate check → straddle geometry → ambiguous filter → direction |
+| Door x-gate | `door_x_gate: [250, 490]` from zones.json; crossings outside suppressed |
+| Direction | `dy * dir_dy > 0` where `dir_dy=1`; top-to-bottom = ENTRY |
+| Ambiguous filter | `\|dy\| < 8px` — jitter at line suppressed; not emitted |
+| `prev_centroids` | Per-track last centroid; not pruned on disappearance (consistent with Phase 2) |
+| camera_id guard | `ValueError` with descriptive message on non-CAM_3 input |
+
+Config sources: `entry_line`, `entry_direction_vector`, `door_x_gate` all read from `zones.json CAM_3`. `_AMBIGUOUS_MIN_DY=8` is a module constant (not in config.json — carried from Phase 2 hardcode).
+
+### Sensitivity limitation (Q3 status)
+
+**Checkpoint 3.3B validates crossing mechanics and gate behavior. Real-world sensitivity remains unverified because the Phase 2 CAM_3 footage did not contain confirmed crossing examples.**
+
+Phase 2 Checkpoint 2.3 observed zero genuine store entries in 720 processed frames (81% of CAM_3 footage). The smoke run on CAM_3.mp4 at `max_frames_per_camera=1000` also produced 0 crossings, which is consistent with the Phase 2 Q3 Partial Pass result. Q3 remains open until full end-to-end pipeline validation with footage that contains confirmed crossing events.
+
+### Validation results
+
+```
+12/12 checks passed -- ALL PASS
+
+  NOTE: This validator proves crossing LOGIC and GATE BEHAVIOUR only.
+  Real-world sensitivity is UNVERIFIED (Phase 2 Q3: 0 genuine crossings
+  observed in 720 processed frames). Q3 remains open until end-to-end
+  pipeline validation with confirmed-crossing footage.
+
+[PASS] entry_counter: imports without error
+[PASS] CAM_3: entry_line, direction_vector, door_x_gate extracted correctly
+       -> entry_line y=170, dir_vec=[0, 1], gate x=250-490
+[PASS] _check_crossing: ENTRY fires for top-to-bottom crossing inside gate
+       -> prev_cy=165 curr_cy=175 cx=350 -> 'entry'
+[PASS] _check_crossing: EXIT fires for bottom-to-top crossing inside gate
+       -> prev_cy=175 curr_cy=165 cx=350 -> 'exit'
+[PASS] _check_crossing: gate suppresses crossing left of door (cx=100)
+[PASS] _check_crossing: gate suppresses crossing right of door (cx=520, Phase 2 FP location)
+[PASS] _check_crossing: |dy|=7 < 8 returns 'ambiguous' (not entry/exit)
+[PASS] _check_crossing: no crossing when centroid stays on same side of entry line
+[PASS] run_entry_crossings: ValueError raised for non-CAM_3 camera_id
+[PASS] run_entry_crossings: smoke run on CAM_3.mp4 returns dict with correct keys
+       -> entry_count=0  exit_count=0  ambiguous_count=0
+[PASS] crossing events: all required schema fields present (if any emitted)
+[PASS] _check_crossing: gate boundary values (cx=250, cx=490) are inclusive
+```
 
 ---
 
