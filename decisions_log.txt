@@ -450,6 +450,31 @@ Trade-off: Events requiring body motion ONLY in the floor area (y=246-355) would
   required if camera is physically repositioned.
 CHOICES.md section: Detection Strategy — CAM 4
 
+Decision 19:
+Date: 2026-06-01
+Context: Checkpoint 3.4 — staff_filter.py implementation. The event schema
+  (frozen in Phase 1) includes a staff_filtered field in zone_dwell and
+  crossing_entry/crossing_exit events. Both session_manager.py and
+  entry_counter.py write staff_filtered=False at event emission time.
+  NDJSON format has no update primitive — modifying individual records after
+  writing would require reading the entire file, modifying records in memory,
+  and rewriting the file (O(n) fragile operation).
+Decision: staff_filtered field in events.json is a schema placeholder only.
+  It is not read by any downstream module. The authoritative source of truth
+  for staff classification is the return value of run_staff_filter(), which
+  is called at pipeline runtime with the events list loaded into memory.
+  Downstream modules (funnel.py, anomalies.py, api.py) consume the in-memory
+  classification output: {staff_track_ids: {CAM_3: frozenset, CAM_5: frozenset},
+  staff_filtered_count: int, staff_filter_enabled: bool}.
+Rationale: In-memory classification at runtime is simpler, more reliable, and
+  requires no file I/O beyond the initial events.json load. The frozen schema
+  field is retained for documentation and future auditability (e.g. if a
+  post-processing rewrite step is added in a future version).
+Trade-off: events.json alone does not indicate which events were staff-filtered.
+  Downstream analysis requires re-running staff_filter with the same config.
+  This is acceptable — process_videos.py and api.py both own the full pipeline.
+CHOICES.md section: Staff Filtering Strategy
+
 - [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
 - [x] ByteTrack accept/reject decision after Phase 2 validation test — RESOLVED Decision 14 (REJECTED)
 - [x] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing

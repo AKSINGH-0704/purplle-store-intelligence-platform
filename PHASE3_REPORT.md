@@ -27,8 +27,8 @@ From master plan Section 25:
 | 3.2 | Detection layer | src/detection.py, src/background_motion.py | **COMPLETE** | 12/12 validation — commit 5b7e5bf |
 | 3.3A | Session manager | src/session_manager.py | **COMPLETE** | 12/12 validation — commit 7b5b9c8 |
 | 3.3B | Entry counter | src/entry_counter.py | **COMPLETE** | 12/12 validation — commit 8423d8a |
-| 3.4 | Staff filter | src/staff_filter.py | NOT STARTED | — |
-| 3.5 | Funnel + anomalies + CSV | src/funnel.py, src/anomalies.py, src/csv_analytics.py | NOT STARTED | — |
+| 3.4 | Staff filter + CSV analytics | src/staff_filter.py, src/csv_analytics.py | **COMPLETE** | 12/12 validation — commit d042f03 |
+| 3.5 | Funnel + anomalies | src/funnel.py, src/anomalies.py | NOT STARTED | Scope review pending |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
 
 ---
@@ -344,6 +344,100 @@ Phase 2 Checkpoint 2.3 observed zero genuine store entries in 720 processed fram
        -> entry_count=0  exit_count=0  ambiguous_count=0
 [PASS] crossing events: all required schema fields present (if any emitted)
 [PASS] _check_crossing: gate boundary values (cx=250, cx=490) are inclusive
+```
+
+---
+
+## Checkpoint 3.4 — Staff Filter + CSV Analytics
+
+**Commit:** `d042f03`
+**Validation:** `python tools/validate_checkpoint_34.py` — 12/12 PASS
+
+### What was implemented
+
+**`src/staff_filter.py`** — `run_staff_filter(events: list, config: dict) -> dict`
+
+Classifies track_ids as staff or customer from the in-memory events list. No file I/O.
+
+| Component | Description |
+|-----------|-------------|
+| Rule 1 — roundtrip | CAM_3 track with crossings in both directions AND total > `staff_roundtrip_threshold` (3) within `staff_roundtrip_window_minutes` (30 min) window |
+| Rule 2 — billing start | CAM_5 zone_dwell with `timestamp_entry_seconds < _FIRST_FRAME_THRESHOLD_SECONDS` (3.0s) |
+| Rule 3 — first frame | CAM_3 crossing with `timestamp_seconds < _FIRST_FRAME_THRESHOLD_SECONDS` (3.0s) |
+| Disabled path | `staff_filter_enabled=False` returns empty frozensets and count=0; downstream modules apply no filtering |
+
+**Authoritative source of truth — Decision 19:**
+The `staff_filtered` field in events.json is a schema placeholder only. It is written as `False` by session_manager.py and entry_counter.py and is **not read** by any downstream module. The authoritative source of staff classification is the return value of `run_staff_filter()`:
+
+```python
+{
+    "staff_track_ids": {
+        "CAM_3": frozenset[int],   # entrance staff (affects entry count, Anomaly 4)
+        "CAM_5": frozenset[int],   # billing staff (affects queue occupancy, Anomaly 2)
+    },
+    "staff_filtered_count": int,   # for System Health tab display
+    "staff_filter_enabled": bool,
+}
+```
+
+**Rule 1 status on current footage:**
+Rule 1 (roundtrip heuristic) is not exercised on the current CAM_3.mp4 footage because Phase 2 Checkpoint 2.3 observed zero confirmed store-entry crossings. The rule is correctly implemented and will fire when genuine crossing events are present. Rule 2 and Rule 3 may fire if tracks appear within 3.0 seconds of recording start.
+
+**`src/csv_analytics.py`** — `run_csv_analytics(csv_path: str) -> dict`
+
+Revenue intelligence from `data/Brigade_Bangalore_10_April_26.csv` (POS date: 10-04-2026, separate from video date 16-04-2026). No individual-level matching between datasets is performed or claimed.
+
+**Actual metrics from the CSV:**
+
+| Metric | Value |
+|--------|-------|
+| Transactions (unique order_id) | 24 |
+| GMV | 44,920.00 INR |
+| NMV | 34,831.74 INR |
+| Avg basket depth | 4.88 units/order |
+| Top category (GMV) | makeup — 28,803 INR (64.1%) |
+| Brand split | PB 70.4% / External 29.6% |
+| Top promotion | "Buy 2 Get 1 Faces and Ny bae" — 21,784 GMV |
+| Top salesperson (NMV) | Zufishan Khazra — 16,583 NMV |
+| Revenue peak hours | 19:00 (13,069) and 12:00 (13,014) |
+
+All 11 output keys implemented (6 mandatory + 4 enhancement + source tag).
+
+### How funnel.py will consume staff_filter output (Checkpoint 3.5)
+
+```python
+staff = run_staff_filter(events, config)
+staff_cam3 = staff["staff_track_ids"]["CAM_3"]
+staff_cam5 = staff["staff_track_ids"]["CAM_5"]
+
+# Stage 1 — customer entries only
+entry_count = sum(
+    1 for e in events
+    if e["event_type"] == "crossing_entry"
+    and e["track_id"] not in staff_cam3
+)
+```
+
+### Validation results
+
+```
+12/12 checks passed -- ALL PASS
+
+[PASS] staff_filter + csv_analytics: imports without error
+[PASS] staff_filter: disabled flag returns empty classification
+[PASS] staff_filter Rule 1: track with 4 roundtrip crossings classified as staff
+[PASS] staff_filter Rule 1: entry-only track (no exit) not classified as staff
+[PASS] staff_filter Rule 2: billing track at t=1.0s classified as staff
+[PASS] staff_filter Rule 2: billing track at t=10.0s not classified as staff
+[PASS] staff_filter Rule 3: CAM_3 crossing at t=1.5s classified as staff
+[PASS] staff_filter: output schema has all required keys and correct types
+[PASS] csv_analytics: returns dict with all required keys
+[PASS] csv_analytics: transactions==24, gmv/nmv/avg_basket_depth positive
+       -> transactions=24  gmv=44920.00  nmv=34831.74  avg_basket_depth=4.88
+[PASS] csv_analytics: brand_split sums to ~100%
+       -> private=70.4%  external=29.6%  sum=100.00%
+[PASS] csv_analytics: hourly_revenue keys are valid 2-digit hour strings
+       -> 10 hours: ['12','13','14','15','16','17','18','19','20','21']
 ```
 
 ---
