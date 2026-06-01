@@ -30,12 +30,12 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 
 - [x] Checkpoint 2.1: tools/test_yolo.py — COMPLETE. Q1 = YES. 6 detections, conf 0.76–0.88 (Decision 13)
 - [x] Created PHASE2_ENVIRONMENT_CHECK.md — ultralytics install resolved
-- [ ] Checkpoint 2.2: tools/test_tracker.py — centroid tracker validation
+- [x] Checkpoint 2.2: tools/test_tracker.py — COMPLETE. Q2 = YES. Longest track 200f, 3 tracks ≥20f. ByteTrack REJECTED. (Decision 14)
 - [ ] Checkpoint 2.3: tools/test_entry_crossing.py — entry line crossing validation
 - [ ] Checkpoint 2.4: tools/test_zone_visits.py — zone visit detection
 - [ ] Checkpoint 2.5: tools/test_background_motion.py — CAM_4 MOG2 calibration
 
-**Next action:** Approve Checkpoint 2.1 commit → create Checkpoint 2.2 (centroid tracker).
+**Next action:** Approve Checkpoint 2.2 commit → create Checkpoint 2.3 (entry line crossing).
 
 ---
 
