@@ -514,6 +514,35 @@ Trade-off: The anomaly fires for all warehouse motion, including scheduled resto
   was scheduled, which mitigates the impact of false alerts.
 CHOICES.md section: Anomaly Detection Strategy
 
+Decision 21:
+Date: 2026-06-01
+Context: Checkpoint 3.6 — process_videos.py orchestrator implementation.
+  config.json has max_frames_per_camera=1000, which was calibrated for YOLO
+  cameras (CAM_1/2/3/5, frame_skip=5, person detection). CAM_4.mp4 is 3,647
+  frames (146s). The 1000-frame window covers only the first 40s.
+  Genuine warehouse activity events are confirmed at t=92.3s (frame 2306),
+  which is outside the 1000-frame window. Decision 18 deferred the fix to
+  this checkpoint.
+Decision: process_videos.py overrides max_frames_per_camera for CAM_4 only
+  using a module constant: _CAM4_MAX_FRAMES = 999_999.
+  The CAM_4 call is: cam4_config = {**config, "max_frames_per_camera": _CAM4_MAX_FRAMES}.
+  run_background_motion() uses min(max_frames, total_frames), so
+  min(999_999, 3647) = 3647 -- the full video is processed.
+  All YOLO cameras (CAM_1/2/3/5) retain the config value of 1000.
+  config.json is unchanged.
+  The override applies in both full mode and --quick mode. CAM_4 uses MOG2
+  (no YOLO inference) and processes 3,647 frames in ~15s -- within the
+  --quick time budget of under 5 minutes.
+Rationale: The per-call config override is the minimal-footprint change. It
+  requires no modification to run_background_motion(), no change to config.json,
+  and no new config key. The override is localized to the orchestrator and
+  documented in a module-level constant with an explanatory comment.
+Trade-off: In --quick mode, CAM_4 still processes the full 146s recording while
+  YOLO cameras process only 300 frames (~10s). This is deliberate: suppressing
+  genuine warehouse events in quick mode reduces demo value more than it saves
+  time, given that CAM_4 processing is 4-5x faster than YOLO inference.
+CHOICES.md section: Detection Strategy -- CAM 4
+
 - [ ] Dwell merge window value confirmed after Phase 2 testing
 - [ ] requirements.txt exact version pinning completed after Phase 3 environment
       setup (pip freeze output replaces current >= bounds)
