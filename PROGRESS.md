@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
-Last Updated: 2026-06-01
-Current Phase: Phase 5 — COMPLETE
-Current Status: Streamlit 5-tab dashboard implemented. All tabs consume single cached /dashboard call. Plotly funnel (stages 2-4), revenue charts, system health with video hashes. total_dwell from API exact value (Option b). 17/17 structural validation checks pass.
+Last Updated: 2026-06-02
+Current Phase: Phase 6 — COMPLETE
+Current Status: Docker deployment configuration complete. Separate API and dashboard images on python:3.11-slim. events/ bind-mounted read-only; dashboard depends_on api condition:service_healthy; API_BASE_URL=http://api:8000. 50/50 validation checks pass.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -21,7 +21,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
 | 4 | API Development | **COMPLETE** | Single checkpoint — commit 9e91023 |
 | 5 | Dashboard | **COMPLETE** | Single checkpoint -- commit fea0865 |
-| 6 | Docker and Processing Script | NOT STARTED | — |
+| 6 | Docker and Processing Script | **COMPLETE** | Single checkpoint -- commits 899309e, (docs commit) |
 | 7 | Documentation | NOT STARTED | — |
 
 ---
@@ -108,7 +108,23 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - requirements.txt: plotly>=5.0.0 added
   - tools/validate_checkpoint_5.py: 17/17 structural checks pass
 
-**Phase 5 COMPLETE.** Next: Phase 6 (Docker) -- not yet started.
+**Phase 5 COMPLETE.**
+
+---
+
+## PHASE 6 -- COMPLETE
+
+- [x] Checkpoint 6: Docker deployment configuration -- commits 899309e, (docs)
+  - .dockerignore: excludes inputs/ (648 MB), .git/, __pycache__, .env
+  - requirements-api.txt: fastapi + uvicorn[standard] only (~165 MB image)
+  - requirements-dashboard.txt: streamlit, plotly, pandas, requests (~548 MB image)
+  - Dockerfile.api: python:3.11-slim; src/ copied; events/ + logs/ as volumes; uvicorn CMD
+  - Dockerfile.dashboard: python:3.11-slim; dashboard.py only; headless Streamlit on 8501
+  - docker-compose.yml: api (port 8000) + dashboard (port 8501); depends_on service_healthy;
+    API_BASE_URL=http://api:8000; events/:ro bind-mount; urllib healthchecks; no GPU
+  - tools/validate_checkpoint_6.py: 50/50 structural checks pass
+
+**Pending: docker compose build + up verification (real Docker run) before Phase 7.**
 
 ---
 
