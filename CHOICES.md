@@ -69,13 +69,25 @@ The model weights are bundled in the `models/` directory and copied into the Doc
 
 CAM 4 covers the warehouse/storage zone. The warehouse requires activity detection — "is something moving and approximately how much?" — not customer identification. OpenCV's MOG2 background subtractor answers this question faster, lighter, and with fewer dependencies than running YOLOv8 on warehouse footage.
 
-A minimum contour area threshold (`warehouse_motion_threshold`, default 500 sq px) filters out lighting-flicker false positives. MOG2 adapts to gradual background changes but is sensitive to sudden motion, which is exactly the desired behaviour for detecting warehouse activity.
+A minimum contour area threshold (`warehouse_motion_threshold`) filters out lighting-flicker false positives. MOG2 adapts to gradual background changes but is sensitive to sudden motion, which is exactly the desired behaviour for detecting warehouse activity.
 
-**CAM 4 lighting flicker — calibration required (decisions_log.txt #9)**
+**CAM 4 calibration — two-stage process (decisions_log.txt #17, #18)**
 
-Phase 0 video inspection revealed visible lighting flicker in CAM 4. The default threshold of 500 sq px was set before observing this. Phase 2 calibration is mandatory for this camera: measure maximum contour area produced by flicker-only frames, then set `warehouse_motion_threshold` above that maximum. Expected calibrated range: 500–2000 sq px. The decision to keep the default at 500 rather than guessing a higher value was deliberate — engineering from data, not assumptions.
+Phase 0 inspection revealed lighting flicker in CAM 4. Calibration proceeded in two stages:
 
-*TODO (Phase 2): Update this section with the calibrated value and the flicker contour area measurements.*
+*Stage 1 — Phase 2 initial calibration (Decision 17):* 1000 consecutive frames processed. Flicker produced contours up to ~1255 sq px. Threshold set at p99 × 1.30 = **1631 sq px**. This eliminated 99%+ of flicker events while preserving one confirmed genuine event.
+
+*Stage 2 — Phase 3 recalibration (Decision 18):* Phase 3 pipeline run revealed 451 false positives at 1631 sq px. Root cause: the Phase 2 sample was capped at 3× the initial threshold (1500 sq px), missing the true flicker ceiling. The reflective tile floor (y=246–355) generated foreground contours of 10,000–50,000 sq px during lighting bursts — far beyond the Phase 2 measurement range.
+
+Two-part correction:
+1. **Zone geometry:** CAM_4 polygon bottom raised from y=355 to y=246, excluding the tile floor. 14 inspected frames confirmed zero body silhouettes below y=246; all genuine activity (t=92.3s) is above this boundary.
+2. **Threshold recalibration:** p99 of noise in the revised zone = 21,604 sq px. Final threshold = 21,604 × 1.30 = **28,085 sq px** (current `config.json` value).
+
+Result: 2 events in full video processing, both at t=92.3s (frame 2306, contour area 63,617 sq px — 47% of zone). Confirmed genuine: boxes visually rearranged in that frame. False positive rate: ~0.
+
+**CAM 4 full-video processing override (decisions_log.txt #21)**
+
+`config.json` sets `max_frames_per_camera=1000`, calibrated for YOLO cameras. CAM_4.mp4 is 3,647 frames (146s) — genuine events at t=92.3s fall outside the 1000-frame window. `process_videos.py` overrides this for CAM_4 only using `_CAM4_MAX_FRAMES = 999_999`, so `min(999_999, 3647) = 3647`. All YOLO cameras retain the 1000-frame limit. `config.json` is unchanged.
 
 ---
 
@@ -91,7 +103,18 @@ Evaluated ByteTrack but implemented a lightweight centroid tracker for the prima
 
 ByteTrack remains a documented fallback. Phase 2 validation will test: does a single walking person maintain one consistent track ID for at least 20 consecutive processed frames? If centroid tracking fails this test, ByteTrack will be evaluated with the same criterion (< 3 ID resets per minute).
 
-*TODO (Phase 2): Update this section with the tracker validation result.*
+**Phase 2 validation result (decisions_log.txt #14):** Centroid tracker validated on CAM_1.mp4 at production settings (frame_skip=5, tracker_distance_threshold=80px, confidence_threshold=0.5, ~1000 source frames → ~200 processed frames).
+
+| Metric | Result |
+|--------|--------|
+| Total unique IDs created | 7 |
+| Longest track | 200 processed frames (full observation window) |
+| Average track length | 65.7 processed frames |
+| Tracks surviving ≥20 frames | 3 (ID 0: 200f, ID 1: 199f, ID 2: 40f) |
+
+The two primary tracks (IDs 0 and 1) maintained continuity for the full 200-frame window with no fragmentation. Short-lived IDs (3–6) represent occlusion and edge-frame events, handled by the dwell merge rule in `session_manager.py`.
+
+`tracker_distance_threshold=80px` retained — no change to `config.json`. ByteTrack formally rejected: the centroid tracker passes the Phase 2 gate on actual footage and has zero external dependency chain.
 
 **Dwell merge rule (decisions_log.txt #5 — see also DESIGN.md Section 6.2)**
 
@@ -113,7 +136,15 @@ All five cameras were briefly inspected before any pipeline code was written:
 
 Mapping confirmed against master plan Section 2.1. No discrepancies found.
 
-*TODO (Phase 2): Update this section with entry line coordinates and direction vector for CAM_3 after visual validation.*
+**Final CAM_3 configuration (decisions_log.txt #11, #15):**
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Entry line | y=170px, x=80→560 | Visual inspection of frame 100; line sits just inside the glass door threshold |
+| Door x-gate | x=250→490 | Derived from zones_preview/CAM_3_frame100.jpg — x<250 is promotional sign/left wall, x>490 is exterior corridor |
+| Entry direction vector | [0,1] (top-to-bottom) | Exterior is at top of frame; interior is at bottom; moving downward = entering store |
+
+The door x-gate was added in Phase 2 (Decision 15) after v1 produced a false positive: a pedestrian walking through the exterior corridor (x>490) at y≈170 was counted as ENTRY. The gate restricts valid crossings to the physical door opening only. The direction vector was confirmed correct across all three validation runs (v1, v2, v2-extended covering 81% of footage).
 
 ---
 
@@ -146,7 +177,14 @@ The `staff_roundtrip_threshold` (3 crossings in both directions within `staff_ro
 
 The staff filtering count is displayed in the System Health tab. Transparency about what was filtered is more credible than claiming perfect customer-only metrics.
 
-*TODO (Phase 3): Update this section with the staff_filtered_count from actual processing and a description of which rule matched the most events.*
+**Actual pipeline result:** `staff_filtered_count = 0` on the committed footage (decisions_log.txt #19).
+
+- Rule 1 (roundtrip crossings): Dead code on this footage. CAM_3 detected 0 crossings in the 1000-frame processing window — the recording window is too short to observe the multi-trip pattern.
+- Rules 2 and 3 (positional heuristics): 0 matches in the 1000-frame window.
+
+This is expected behaviour, not a detection failure. The 1000-frame window covers approximately 40 seconds of footage, which is insufficient to observe the roundtrip pattern (30-minute window). A full-day recording would produce non-zero staff filter counts. The count is displayed transparently in the System Health tab regardless of its value.
+
+**Staff filter event schema (decisions_log.txt #19):** The `staff_filtered` field in `events.json` is a schema placeholder set to `False` at emission time. It is not read downstream. The authoritative classification is the runtime return value of `run_staff_filter()`, which operates on the in-memory events list. This avoids a fragile NDJSON rewrite step while maintaining schema compatibility for future versions.
 
 ---
 
@@ -184,11 +222,37 @@ The Streamlit dashboard code reads `API_URL = os.getenv("API_BASE_URL", "http://
 
 SHA256 hashes of all input video files are computed by `process_videos.py` and stored in `events/video_hashes.json`. The `/health` endpoint exposes these hashes, and the System Health dashboard tab displays them. This is the technical answer to "did you just hardcode these numbers?"
 
-*TODO (Phase 3): Update this section with the actual video file hashes after running process_videos.py on all 5 videos.*
+**Committed video hashes** (from `events/video_hashes.json`, generated 2026-06-01T17:29:17Z):
+
+| Camera | SHA-256 |
+|--------|---------|
+| CAM_1 | `8ca666cd17bdd329170c6ddf5586bf09830f502c856da6139661f3581f983c71` |
+| CAM_2 | `28914b2447af515565e36b3a972fa812b31f3f87b3123ad6f0cf5d97096667fd` |
+| CAM_3 | `7f552b1b243c4270251a7a09e63cd156bfe3891ef112a438b370038786acf57d` |
+| CAM_4 | `b58a8a45be00631319d939aef0eb7eeeed877bd83b3a9d3324c4db1ec006a014` |
+| CAM_5 | `4d2ad25fd6300e41b0f5cd9a118861414575216692e42cf0de8b7b6bc0028164` |
+
+These are displayed in the System Health tab (Tab 5). Running `process_videos.py` with the original video files regenerates matching hashes. Replacing any video file produces a different hash, events regenerate, and API metrics change — proving the pipeline is live.
 
 ---
 
-## 12. Future Architecture Roadmap
+## 12. Anomaly Detection Strategy
+
+**Anomaly 3 reframe — no wall-clock time available (decisions_log.txt #20)**
+
+The master plan described Anomaly 3 as "motion outside a configurable expected time window" — implying hour-of-day filtering (e.g. flag motion between 22:00 and 06:00). Implementation revealed this is not computable: `run_background_motion()` returns `timestamp_seconds` as elapsed seconds from the recording start, not wall-clock time. No recording manifest, EXIF data, or timestamp overlay is available in any repository file.
+
+Decision: Anomaly 3 fires on **any** warehouse motion event, with a recommendation to verify the motion was a scheduled restocking operation. Severity is `"warning"` when `is_restocking_event=True` (sustained motion), `"info"` otherwise.
+
+This produces correct operational alerts on current footage (2 events at t=92.3s, both classified as restocking). If wall-clock metadata becomes available in future, hour-of-day filtering can be added using new config keys without changing the event schema.
+
+**Zone abandonment boundary guard (decisions_log.txt #7 / DESIGN.md Section 13)**
+
+Anomaly 4 (Zone Abandonment) is computed only for entries in the first 70% of the processing window. Entries near the end of the window have their potential downstream zone visit outside the processed frames — including them produces systematic false positives. The 70% boundary is a deliberate engineering choice, not a heuristic guess.
+
+---
+
+## 13. Future Architecture Roadmap
 
 - **Cross-camera re-identification:** OSNet or Fast-ReID would enable true person-level journey tracking. Not implemented due to CPU constraints and time scope.
 - **Real-time streaming:** Kafka event bus for live zone occupancy dashboards with sub-second latency.

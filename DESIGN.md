@@ -1,8 +1,8 @@
 # DESIGN.md — Purplle Store Intelligence Platform
 ## System Architecture Document
 
-Version: Phase 1 draft (to be finalised in Phase 7 with actual measured values)
-Last Updated: 2026-05-31
+Version: Final
+Last Updated: 2026-06-02
 
 ---
 
@@ -153,11 +153,11 @@ zones.json is a first-class system component. It is the bridge between the physi
 
 | Camera | Zone | Intelligence Layer | Detection Method | Key Config |
 |--------|------|--------------------|-----------------|------------|
-| CAM_1 | skincare | customer | yolov8_nano | polygon (TODO — Phase 2) |
-| CAM_2 | main_floor | customer | yolov8_nano | polygon (TODO — Phase 2) |
-| CAM_3 | entrance | customer | yolov8n | entry_line [[80,170],[560,170]], entry_direction_vector [0,1] — FINALIZED |
-| CAM_4 | warehouse | operational | background_subtraction | polygon (TODO — Phase 2) |
-| CAM_5 | billing | customer_and_operational | yolov8_nano | polygon (TODO — Phase 2) |
+| CAM_1 | skincare | customer | yolov8_nano | `[[20,80],[620,80],[620,350],[20,350]]` |
+| CAM_2 | main_floor | customer | yolov8_nano | `[[10,60],[630,60],[630,355],[10,355]]` |
+| CAM_3 | entrance | customer | yolov8_nano | entry_line `[[80,170],[560,170]]`, door_x_gate `[250,490]`, direction `[0,1]` |
+| CAM_4 | warehouse | operational | background_subtraction | `[[10,30],[630,30],[630,246],[10,246]]`, threshold 28,085 sq px |
+| CAM_5 | billing | customer_and_operational | yolov8_nano | `[[10,60],[420,60],[420,355],[10,355]]` (x<420; right portion is display screen) |
 
 Tool for coordinate extraction and visual verification: `visualise_zones.py`
 
@@ -183,9 +183,11 @@ Tool for coordinate extraction and visual verification: `visualise_zones.py`
 **Why not YOLO for CAM 4:** The warehouse zone requires activity detection, not customer identification. MOG2 is faster, lighter, has no model dependency, and is more appropriate for detecting "is something moving?" rather than "is this a person?"
 
 **Minimum contour area filter:**
-- Default: 500 sq px (`warehouse_motion_threshold` in config.json)
-- Purpose: Filters lighting flicker noise (produces small scattered pixels) while catching real human movement (produces large contiguous blobs)
-- **CALIBRATION REQUIRED in Phase 2:** CAM 4 lighting flicker was observed during Phase 0 video inspection. The threshold may need to be raised to 500–2000 sq px. Calibration method: measure maximum contour area from flicker-only frames (no human present), set threshold above this maximum.
+- Calibrated value: **28,085 sq px** (`warehouse_motion_threshold` in config.json)
+- Purpose: Filters lighting flicker noise while catching genuine human motion (large contiguous blobs)
+- Calibration method: p99 of flicker contour area in the revised zone (upper polygon only, y<246) = 21,604 sq px. Final threshold = 21,604 × 1.30 (30% engineering margin).
+- CAM_4 zone polygon bottom was raised from y=355 to y=246 to exclude the reflective tile floor, which generated foreground contours of 10,000–50,000 sq px during lighting bursts — far above the threshold range that would be useful for human detection.
+- Result: 2 events in full video (both at t=92.3s, contour 63,617 sq px = 47% of zone), 0 false positives. See CHOICES.md Section 4 for full calibration history.
 
 **MOG2 advantages:** Adapts to slow lighting changes (gradual brightness shifts). Sensitive to sudden motion but filters sustained background.
 

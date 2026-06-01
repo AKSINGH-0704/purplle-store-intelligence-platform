@@ -43,8 +43,6 @@ These layers are reported separately and clearly labelled throughout.
 
 ## Architecture Overview
 
-<!-- TODO: Populate with final architecture diagram after Phase 3/4 completion -->
-
 ```
 zones.json + config.json
         |
@@ -108,9 +106,10 @@ To verify:
    (`Brigade_Road_Store_layout.xlsx`) drives the analytics via `zones.json`.
    Every zone polygon is derived from the actual floor plan.
 
-2. **`curl http://localhost:8000/anomalies`** — five specific business-actionable
-   alerts with recommendations and `triggered_at` timestamps from actual
-   pipeline computation.
+2. **`curl http://localhost:8000/anomalies`** — business-actionable alerts with
+   recommendations and `triggered_at` timestamps from actual pipeline computation.
+   On committed footage: 1 alert fires (`unusual_warehouse_activity` at t=92.3s).
+   All 5 detectors are implemented; others fire when their thresholds are exceeded.
 
 3. **Tab 4 (Revenue Intelligence)** — salesperson performance ranking and
    promotion effectiveness analysis from POS data.
@@ -119,8 +118,9 @@ To verify:
    computed from specific files, not fabricated.
 
 5. **`python process_videos.py --quick`** — live computation in under 5 minutes.
-   Observe metrics updating after the run. Last full test run: `[TODO: fill
-   in after Phase 3 completion — record actual time and CPU model here]`.
+   Observe metrics updating after the run. Last full run: 142.6s total on
+   Intel Core i7-1355U (CAM_1: 30.3s, CAM_2: 27.2s, CAM_3: 25.7s,
+   CAM_4: 28.1s, CAM_5: 30.8s) — 2026-06-01.
 
 6. **`CHOICES.md`** — architectural rationale for using background subtraction
    for CAM 4 instead of person detection. A deliberate design decision, not a
@@ -163,8 +163,8 @@ python process_videos.py
 python process_videos.py --quick
 ```
 
-Last full test run: `[TODO: fill in after Phase 3 completion]`  
-Hardware: `[TODO: fill in CPU model, RAM, OS]`
+Last full test run: 142.6s (all 5 cameras, 1000 frames each at frame_skip=5, CAM_4 full video)  
+Hardware: Intel Core i7-1355U (13th Gen), 16 GB RAM, Windows 11 Home
 
 ---
 
