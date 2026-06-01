@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-06-01
-Current Phase: Phase 3 — COMPLETE
-Current Status: All 6 checkpoints complete. process_videos.py runs end-to-end on all 5 cameras. Full pipeline: 51 events, 5 SHA256 hashes, pipeline_summary.json. Anomaly 3 fires (warehouse motion at t=92.3s, captured via CAM_4 full-video override). Phase 3 completion gate passed. Decision 21 recorded.
+Current Phase: Phase 4 — COMPLETE
+Current Status: FastAPI service implemented. All 7 endpoints validated (18/18 checks pass). Fastest endpoint 0.9ms. Option C architecture: pipeline_summary.json loaded once at startup; all responses from in-memory state. CORS enabled. Structured request logging via LOG_BUFFER.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -19,7 +19,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
 | 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
 | 3 | Backend and Event Pipeline | **COMPLETE** | All 6 checkpoints — commits 70f3959, 5b7e5bf, 7b5b9c8, 8423d8a, d042f03, d5a5ee8, a88819f |
-| 4 | API Development | NOT STARTED | — |
+| 4 | API Development | **COMPLETE** | Single checkpoint — commit TBD |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
@@ -81,7 +81,19 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
   - tools/validate_checkpoint_36.py: 12/12 checks pass (8 structural + 4 end-to-end)
   - Decision 21 recorded: CAM_4 max_frames override in orchestrator
 
-**Phase 3 COMPLETE.** Next action: Phase 4 scope review — FastAPI endpoints.
+**Phase 3 COMPLETE.**
+
+## PHASE 4 -- COMPLETE
+
+- [x] Checkpoint 4: FastAPI endpoints -- src/api.py -- commit TBD
+  - All 7 endpoints: /health, /metrics, /funnel, /anomalies, /zone_metrics/{zone}, /events/sample, /dashboard
+  - Option C: pipeline_summary.json + events.json loaded once at startup; all responses from _state dict
+  - total_dwell_seconds derived directly from zone_dwell events (Option b -- exact sum)
+  - CORS middleware, HTTP request logging middleware, lifespan startup, 404 with valid_zones
+  - Rerunning process_videos.py requires API restart (documented in PHASE4_REPORT.md)
+  - tools/validate_checkpoint_4.py: 18/18 checks pass (TestClient, all endpoints, response times)
+
+**Phase 4 COMPLETE.** Next action: Phase 5 scope review -- Streamlit dashboard.
 
 ---
 
