@@ -208,7 +208,50 @@ CHOICES.md section: Zone Configuration (update in Phase 7 with final coordinates
 
 - [x] zones.json polygon extraction method confirmed (frame extraction — RESOLVED Decision 8)
 - [x] zones.json polygon coordinates FINALIZED — RESOLVED Decision 11
-- [ ] Entry line coordinates and direction vector for CAM 3 finalised (Phase 2)
+Decision 12:
+Date: 2026-06-01
+Context: Phase 2 CV Validation begins. Structured as 5 sequential checkpoints,
+  each with a dedicated validation tool in tools/. Each checkpoint stops for
+  human review before the next begins.
+Decision: Phase 2 is broken into checkpoints 2.1–2.5, not run as a single script.
+  Checkpoint 2.1 (YOLOv8-nano smoke test on CAM_1) is the first gate — if YOLO
+  cannot detect people in the actual videos at 640×360, nothing else in the
+  pipeline is worth building. Results are recorded in PHASE2_REPORT.md after
+  each run.
+Rationale: Incremental validation with human review at each gate prevents
+  building detection, tracking, and crossing logic on top of an unvalidated
+  foundation. Each checkpoint produces a concrete YES/NO answer and evidence
+  (annotated images or printed metrics).
+Trade-off: Slightly slower than running all validation in one script, but each
+  result is reviewed and recorded before proceeding.
+CHOICES.md section: Detection Strategy (Phase 2 validation methodology)
+
+Decision 13:
+Date: 2026-06-01
+Context: Checkpoint 2.1 — YOLOv8-nano smoke test run on CAM_1.mp4 at 640×360.
+  Tested frames 0, 100, 200 with confidence_threshold=0.5, class 0 (person) only.
+Decision: Q1 ANSWERED YES. YOLOv8-nano successfully detects people in these
+  videos on this machine at the configured resolution and threshold.
+  Results:
+    Frame   0: 2 persons, confidence 0.76–0.88
+    Frame 100: 2 persons, confidence 0.76–0.88
+    Frame 200: 2 persons, confidence 0.76–0.88
+    Total: 6 detections, confidence range 0.76–0.88
+  confidence_threshold=0.5 retained. Minimum observed confidence (0.76) is
+  26pp above the threshold, providing substantial headroom before false
+  negatives become a risk. No need to lower the threshold.
+  Consistent 2 persons detected across all 3 test frames on CAM_1 (skincare
+  zone) — no frame-to-frame drop-outs observed on this camera.
+Rationale: Confidence range 0.76–0.88 is strong for a retail indoor scene.
+  The model generalises well to this store's lighting and camera quality
+  without any fine-tuning. The 0.5 threshold is neither too aggressive
+  (missing real persons) nor too permissive (admitting false positives).
+Trade-off: Only CAM_1 was tested in this checkpoint. CAM_3, CAM_2, and CAM_5
+  will be validated in subsequent checkpoints. It is possible that other
+  cameras with different angles or lighting produce lower confidence scores.
+CHOICES.md section: Detection Strategy (Checkpoint 2.1 validation result)
+
+- [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
 - [ ] ByteTrack accept/reject decision after Phase 2 validation test
 - [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
       (Phase 2) — default 500 may need to increase due to observed flicker

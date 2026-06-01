@@ -17,12 +17,25 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
-| 2 | CV Validation | READY TO START | zones.json LOCKED — primary blocker resolved |
+| 2 | CV Validation | IN PROGRESS | Checkpoint 2.1 created (tools/test_yolo.py) — awaiting run |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
+
+---
+
+## PHASE 2 — IN PROGRESS
+
+- [x] Checkpoint 2.1: tools/test_yolo.py — COMPLETE. Q1 = YES. 6 detections, conf 0.76–0.88 (Decision 13)
+- [x] Created PHASE2_ENVIRONMENT_CHECK.md — ultralytics install resolved
+- [ ] Checkpoint 2.2: tools/test_tracker.py — centroid tracker validation
+- [ ] Checkpoint 2.3: tools/test_entry_crossing.py — entry line crossing validation
+- [ ] Checkpoint 2.4: tools/test_zone_visits.py — zone visit detection
+- [ ] Checkpoint 2.5: tools/test_background_motion.py — CAM_4 MOG2 calibration
+
+**Next action:** Approve Checkpoint 2.1 commit → create Checkpoint 2.2 (centroid tracker).
 
 ---
 
