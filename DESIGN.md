@@ -155,7 +155,7 @@ zones.json is a first-class system component. It is the bridge between the physi
 |--------|------|--------------------|-----------------|------------|
 | CAM_1 | skincare | customer | yolov8_nano | polygon (TODO — Phase 2) |
 | CAM_2 | main_floor | customer | yolov8_nano | polygon (TODO — Phase 2) |
-| CAM_3 | entrance | customer | yolov8_nano | entry_line + entry_direction_vector (TODO — Phase 2) |
+| CAM_3 | entrance | customer | yolov8n | entry_line [[80,170],[560,170]], entry_direction_vector [0,1] — FINALIZED |
 | CAM_4 | warehouse | operational | background_subtraction | polygon (TODO — Phase 2) |
 | CAM_5 | billing | customer_and_operational | yolov8_nano | polygon (TODO — Phase 2) |
 

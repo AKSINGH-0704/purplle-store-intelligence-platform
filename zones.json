@@ -1,44 +1,134 @@
 {
   "CAM_1": {
     "zone": "skincare",
+    "polygon": [
+      [
+        20,
+        80
+      ],
+      [
+        620,
+        80
+      ],
+      [
+        620,
+        350
+      ],
+      [
+        20,
+        350
+      ]
+    ],
     "intelligence_layer": "customer",
-    "detection_method": "yolov8_nano",
-    "polygon": [],
-    "_polygon_note": "TODO: Extract polygon coordinates from Brigade_Road_Store_layout.xlsx and/or video frame inspection. Coordinates are in pixel space at 640x360 resolution. Required format: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]. Use tools/visualise_zones.py to overlay and validate against actual video frame.",
-    "_camera_note": "TODO: Confirm camera angle and zone coverage from actual video file before finalising polygon. Expected zone: Skincare / Bath section."
+    "detection_method": "yolov8n"
   },
   "CAM_2": {
     "zone": "main_floor",
+    "polygon": [
+      [
+        10,
+        60
+      ],
+      [
+        630,
+        60
+      ],
+      [
+        630,
+        355
+      ],
+      [
+        10,
+        355
+      ]
+    ],
     "intelligence_layer": "customer",
-    "detection_method": "yolov8_nano",
-    "polygon": [],
-    "_polygon_note": "TODO: Extract polygon coordinates from Brigade_Road_Store_layout.xlsx and/or video frame inspection. Coordinates are in pixel space at 640x360 resolution. Required format: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]. Use tools/visualise_zones.py to overlay and validate against actual video frame.",
-    "_camera_note": "TODO: Confirm camera angle and zone coverage from actual video file before finalising polygon. Expected zone: Main Floor / Circulation area."
+    "detection_method": "yolov8n"
   },
   "CAM_3": {
     "zone": "entrance",
+    "polygon": [
+      [
+        80,
+        60
+      ],
+      [
+        560,
+        60
+      ],
+      [
+        560,
+        355
+      ],
+      [
+        80,
+        355
+      ]
+    ],
+    "entry_line": [
+      [
+        80,
+        170
+      ],
+      [
+        560,
+        170
+      ]
+    ],
+    "entry_direction_vector": [
+      0,
+      1
+    ],
     "intelligence_layer": "customer",
-    "detection_method": "yolov8_nano",
-    "entry_line": [],
-    "entry_direction_vector": [],
-    "_entry_line_note": "TODO: Define entry_line as [[x1,y1],[x2,y2]] — a line crossing the entrance at 640x360 resolution. Inspect actual CAM_3 video frame to determine correct horizontal or vertical line placement.",
-    "_direction_vector_note": "TODO: Define entry_direction_vector as [dx,dy] after inspecting CAM_3 camera angle. The vector must point from street side toward store interior (that direction = entry). The reverse direction = exit. Validate against at least 10 actual crossings from the CAM_3 video (Phase 2 requirement).",
-    "_camera_note": "TODO: Confirm camera orientation from actual video file. Expected zone: Entrance / Exit. This camera drives the entire customer funnel top (entry count)."
+    "detection_method": "yolov8n",
+    "notes": "entry_direction [0,1] means top-to-bottom = entering store. Reverse = exit. Line at y=170 is just inside the glass door threshold."
   },
   "CAM_4": {
     "zone": "warehouse",
+    "polygon": [
+      [
+        10,
+        30
+      ],
+      [
+        630,
+        30
+      ],
+      [
+        630,
+        355
+      ],
+      [
+        10,
+        355
+      ]
+    ],
     "intelligence_layer": "operational",
     "detection_method": "background_subtraction",
-    "polygon": [],
-    "_polygon_note": "TODO: Extract polygon coordinates from Brigade_Road_Store_layout.xlsx and/or video frame inspection. Coordinates are in pixel space at 640x360 resolution. Background subtraction (OpenCV MOG2) is used — no YOLO model required for this camera.",
-    "_camera_note": "TODO: Confirm camera angle and zone coverage from actual video file before finalising polygon. Expected zone: Warehouse / Storage area. Uses background subtraction per architectural decision (see decisions_log.txt)."
+    "notes": "Full floor coverage. Lighting flicker observed — warehouse_motion_threshold may need tuning above 500 during Phase 2 calibration."
   },
   "CAM_5": {
     "zone": "billing",
+    "polygon": [
+      [
+        10,
+        60
+      ],
+      [
+        420,
+        60
+      ],
+      [
+        420,
+        355
+      ],
+      [
+        10,
+        355
+      ]
+    ],
     "intelligence_layer": "customer_and_operational",
-    "detection_method": "yolov8_nano",
-    "polygon": [],
-    "_polygon_note": "TODO: Extract polygon coordinates from Brigade_Road_Store_layout.xlsx and/or video frame inspection. Coordinates are in pixel space at 640x360 resolution. Required format: [[x1,y1],[x2,y2],[x3,y3],[x4,y4]]. Use tools/visualise_zones.py to overlay and validate against actual video frame.",
-    "_camera_note": "TODO: Confirm camera angle and zone coverage from actual video file before finalising polygon. Expected zone: Billing Counter. Used for both queue length detection (operational) and customer checkout interaction counting (customer)."
+    "detection_method": "yolov8n",
+    "notes": "Polygon covers billing counter on left and customer queue space in front. Right portion excluded — that is product display screen area with no queue relevance."
   }
 }

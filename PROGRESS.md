@@ -1,10 +1,11 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
 Last Updated: 2026-05-31
-Current Phase: Phase 2 — READY TO START
-Current Status: Phase 1 complete and pushed (4160a0e). zones.json polygon coordinates needed before Phase 2 validation tests.
+Current Phase: Phase 1.5 Zone Calibration — COMPLETE / Phase 2 — READY TO START
+Current Status: All zones finalized and approved. zones.json LOCKED. Phase 2 CV validation can begin.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
+Phase 1.5 Commit: pending approval
 Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.git
 
 ---
@@ -15,12 +16,23 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 |-------|------|--------|-------|
 | 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
-| 2 | CV Validation | READY TO START | Blocked on zones.json coordinates (use visualise_zones.py) |
+| 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
+| 2 | CV Validation | READY TO START | zones.json LOCKED — primary blocker resolved |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
 | 6 | Docker and Processing Script | NOT STARTED | — |
 | 7 | Documentation | NOT STARTED | — |
+
+---
+
+## PHASE 1.5 — COMPLETED TASKS (Zone Calibration)
+
+- [x] Read and verified finalized zones.json — all 5 cameras with real coordinates
+- [x] Created ZONE_CALIBRATION_REPORT.md — per-camera notes, geometry, assumptions, limitations
+- [x] Updated decisions_log.txt — Decision 11 (zone calibration finalized, CAM_3 entry line approved)
+- [x] Created PHASE1_5_COMPLETE.md — completion summary and Phase 2 readiness
+- [x] Updated PROGRESS.md (this file)
 
 ---
 

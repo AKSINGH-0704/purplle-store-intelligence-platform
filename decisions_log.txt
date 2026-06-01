@@ -183,8 +183,31 @@ Rationale: A filename mismatch between documentation and the actual file on disk
 Trade-off: None. Pure cleanup with no side effects.
 CHOICES.md section: Dependency Choices (file management)
 
-- [ ] zones.json polygon extraction method confirmed (frame extraction, not Excel —
-      resolved by Decision 8; this TODO is now about completing the extraction itself)
+Decision 11:
+Date: 2026-05-31
+Context: Zone calibration finalization — all 5 camera polygon coordinates and the
+  CAM_3 entry line have been visually verified against frame 100 from each video
+  using visualise_zones.py and approved by the human reviewer.
+Decision: zones.json coordinates are now FINAL and APPROVED. No further changes
+  are permitted without re-running visualise_zones.py and recording the reason.
+  Specific calibration decisions within this approval:
+  (a) CAM_1, CAM_2, CAM_4: near-full-frame rectangles with small margins to
+      exclude fixed overhead structures. Approved as-is.
+  (b) CAM_5: polygon bounded at x=420 (not full width). Right portion (x=420–640)
+      is a product display screen with no queue relevance. Deliberate exclusion.
+  (c) CAM_3: entry line finalised at y=170 by human reviewer — places line just
+      inside the glass door threshold as observed in frame. Entry direction vector
+      confirmed as [0,1] (top-to-bottom = entering store, consistent with camera
+      orientation where exterior is at top of frame).
+Rationale: Human review of visualise_zones.py preview images is the correct
+  validation method. The reviewer has direct knowledge of the camera angles and
+  store layout that AI calibration alone cannot provide.
+Trade-off: Polygon accuracy depends on the camera being physically stable. Any
+  camera movement or tilt requires re-running the calibration process.
+CHOICES.md section: Zone Configuration (update in Phase 7 with final coordinates)
+
+- [x] zones.json polygon extraction method confirmed (frame extraction — RESOLVED Decision 8)
+- [x] zones.json polygon coordinates FINALIZED — RESOLVED Decision 11
 - [ ] Entry line coordinates and direction vector for CAM 3 finalised (Phase 2)
 - [ ] ByteTrack accept/reject decision after Phase 2 validation test
 - [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
