@@ -501,6 +501,7 @@ with tab5:
         st.metric("Events loaded", h_data.get("events_loaded", 0))
         st.metric("Transactions loaded", health.get("transactions_loaded", 0))
         st.metric("Anomalies triggered", len(anomalies))
+        st.metric("Staff movements filtered", traffic.get("staff_filter", {}).get("staff_filtered_count", 0))
     with c2:
         elapsed = last_run.get("total_elapsed_sec", 0)
         st.metric("Pipeline elapsed", f"{elapsed:.1f}s" if elapsed else "N/A")
