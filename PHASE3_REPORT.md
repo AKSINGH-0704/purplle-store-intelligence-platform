@@ -25,7 +25,8 @@ From master plan Section 25:
 |---|-----------|-------|--------|--------|
 | 3.1 | Foundation layer | src/utils.py, src/zone_classifier.py, zones.json | **COMPLETE** | 13/13 validation checks pass — commit 70f3959 |
 | 3.2 | Detection layer | src/detection.py, src/background_motion.py | **COMPLETE** | 12/12 validation — commit 5b7e5bf |
-| 3.3 | Entry counter + session manager | src/entry_counter.py, src/session_manager.py | NOT STARTED | Scope review pending |
+| 3.3A | Session manager | src/session_manager.py | **COMPLETE** | 12/12 validation — commit 7b5b9c8 |
+| 3.3B | Entry counter | src/entry_counter.py | NOT STARTED | Scope approved |
 | 3.4 | Staff filter | src/staff_filter.py | NOT STARTED | — |
 | 3.5 | Funnel + anomalies + CSV | src/funnel.py, src/anomalies.py, src/csv_analytics.py | NOT STARTED | — |
 | 3.6 | Orchestrator | process_videos.py | NOT STARTED | — |
@@ -236,6 +237,56 @@ Genuine event confirmed: frame 2306 (t=92.31s), contour area 63,617 sq px (47% o
        -> area range [39738, 63617]
 [PASS] CAM_4: restocking_events structure and field types correct
 ```
+
+---
+
+## Checkpoint 3.3A — Session Manager
+
+**Commit:** `7b5b9c8`
+**Validation:** `python tools/validate_checkpoint_33a.py` — 12/12 PASS
+
+### What was implemented
+
+**`src/session_manager.py`** — `run_zone_visits(video_path, camera_id, config, zones_cfg, events_path)`
+
+Processes one YOLO camera (CAM_1, CAM_2, or CAM_5). Raises `ValueError` for any other camera.
+
+| Component | Description |
+|-----------|-------------|
+| `open_sessions` | Per-track state: entry frame/ts/centroid/bbox/confidence, last position |
+| `recently_closed` | Per-zone: most recent closed session for merge evaluation |
+| `_open_session()` | Opens new session; applies 4-condition merge rule before recording a fresh entry |
+| `_close_session()` | Emits `zone_exit`; emits `zone_dwell` if dwell ≥ `min_dwell_for_visit_seconds` |
+| End-of-video flush | Closes all open sessions using each track's own `last_frame/last_ts` |
+
+**Disappeared-track policy (Option A):** Sessions remain open while track_id exists in the detection layer. YOLO gap frames (disappeared 1–9, ~1.7s) are transparent to session state.
+
+**Dwell merge rule (4 conditions):**
+1. Same zone
+2. Time gap < `dwell_merge_window_seconds` (30s)
+3. No other track currently open in that zone
+4. `dist(closed_last_centroid, new_first_centroid)` ≤ `tracker_distance_threshold` (80px) — identity gate
+
+### Validation results
+
+```
+12/12 checks passed -- ALL PASS
+
+[PASS] session_manager: imports without error
+[PASS] CAM_1: run_zone_visits returns dict with 'skincare' zone key
+[PASS] CAM_1: skincare visit_count == 2 (exact Phase 2 match)
+[PASS] CAM_1: skincare avg_dwell_sec in range [23s, 44s]       -> ~33.4s
+[PASS] CAM_2: main_floor visit_count == 5 (exact Phase 2 match)
+[PASS] CAM_2: main_floor avg_dwell_sec in range [18s, 35s]     -> ~26.6s
+[PASS] CAM_5: billing visit_count == 2 (exact Phase 2 match)
+[PASS] CAM_5: billing avg_dwell_sec in range [19s, 36s]        -> ~27.3s
+[PASS] zone_dwell events: written to file with all required fields
+[PASS] No zone_dwell shorter than min_dwell_for_visit_seconds=10s
+[PASS] zone_entry and zone_exit events present for each zone_dwell
+[PASS] Total visits across all three cameras == 9 (Phase 2 aggregate match)
+```
+
+Phase 2 ground truth reproduced exactly: CAM_1=2, CAM_2=5, CAM_5=2, total=9.
 
 ---
 
