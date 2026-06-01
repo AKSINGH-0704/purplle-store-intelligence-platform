@@ -4,7 +4,7 @@
   "detection_resolution": [640, 360],
   "confidence_threshold": 0.5,
   "tracker_distance_threshold": 80,
-  "warehouse_motion_threshold": 500,
+  "warehouse_motion_threshold": 1631,
   "dwell_merge_window_seconds": 30,
   "zone_abandonment_window_seconds": 300,
   "repeat_visit_threshold": 3,

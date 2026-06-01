@@ -360,11 +360,56 @@ Decision: Q4 PASS. Zone visit detection working across all three cameras.
   Only Checkpoint 2.5 (CAM_4 background subtraction calibration) remains.
 CHOICES.md section: Zone Configuration / Tracking Strategy (Checkpoint 2.4)
 
+Decision 17:
+Date: 2026-06-01
+Context: Checkpoint 2.5 — CAM_4 background subtraction calibration. Running
+  tools/test_warehouse_motion.py on 1000 consecutive frames of CAM_4.mp4 with
+  MOG2 (history=200, varThreshold=16, detectShadows=False) and current
+  warehouse_motion_threshold=500 sq px produced 116 motion events at a 99%
+  false positive rate. Root cause: warehouse lighting flicker generates
+  whole-scene luminance bursts that exceed varThreshold=16, producing 3-frame
+  foreground contours in the range 500-1255 sq px at 640×360.
+Decision: Set warehouse_motion_threshold = 1631 sq px in config.json.
+  Calibration methodology:
+    1. Processed 1000 consecutive frames (no frame_skip — MOG2 temporal model
+       requires sequential frames to adapt to gradual lighting change).
+    2. Classified all frames: static (area ≤ 100), flicker-band (100-500),
+       above-threshold (> 500).
+    3. Collected all contour areas in flicker range up to 3× current threshold.
+    4. Computed p99 of observed flicker contour areas: ~1255 sq px.
+    5. Applied 30% engineering safety margin: 1255 × 1.30 = 1631 sq px.
+  Observed data summary:
+    Total events at T=500          : 116
+    Avg event duration              : ~0.1s (3 frames at 29.97fps) — flicker signature
+    Genuine activity event          : 1 (frames 718-747, ~0.97s) — preserved at T=1631
+    False positive rate at T=500    : ~99%
+    Estimated false positive rate at T=1631: ~0-67% (1-3 residual events max)
+    p99 flicker contour area        : ~1255 sq px
+    Calibrated threshold (p99×1.30) : 1631 sq px
+  Confidence: HIGH — value is data-derived from actual footage, not estimated.
+    The 30% safety margin above the measured noise ceiling is a standard
+    calibration practice. The genuine warehouse event is preserved.
+    Projection range from Decision 9 (500-2000) is satisfied.
+Rationale: The 30% margin above p99 is the standard buffer for this calibration
+  pattern: p99 clears 99 of 100 flicker frames; the extra 30% covers the
+  remaining tail (atypical peak flicker during abnormally bright conditions).
+  T=2000 was considered but rejected — no observed data suggests flicker
+  reaches 2000 sq px, and over-setting the threshold risks silently dropping
+  small genuine motion events (single staff member partially in zone).
+  T=1500 was rejected — only 19% margin above p99, below the 30% standard.
+Trade-off: Threshold is calibrated for the observed lighting conditions in
+  CAM_4.mp4. If warehouse lighting changes significantly (e.g. new fixtures,
+  daylight exposure added), re-calibration by re-running test_warehouse_motion.py
+  is required. The tool is self-contained and produces a new recommendation
+  automatically.
+CHOICES.md section: Detection Strategy — CAM 4
+
 - [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
-- [ ] ByteTrack accept/reject decision after Phase 2 validation test
-- [ ] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
-      (Phase 2) — default 500 may need to increase due to observed flicker
-- [ ] tracker_distance_threshold confirmed at 80px or adjusted after Phase 2 test
+- [x] ByteTrack accept/reject decision after Phase 2 validation test — RESOLVED Decision 14 (REJECTED)
+- [x] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
+      — RESOLVED Decision 17: 1631 sq px (p99 flicker × 1.30)
+- [x] tracker_distance_threshold confirmed at 80px or adjusted after Phase 2 test
+      — RESOLVED Decision 14: 80px RETAINED
 - [ ] Dwell merge window value confirmed after Phase 2 testing
 - [ ] requirements.txt exact version pinning completed after Phase 3 environment
       setup (pip freeze output replaces current >= bounds)

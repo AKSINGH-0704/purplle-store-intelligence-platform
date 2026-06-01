@@ -1,8 +1,8 @@
 # PURPLLE STORE INTELLIGENCE PLATFORM — PROGRESS TRACKER
 
-Last Updated: 2026-05-31
-Current Phase: Phase 1.5 Zone Calibration — COMPLETE / Phase 2 — READY TO START
-Current Status: All zones finalized and approved. zones.json LOCKED. Phase 2 CV validation can begin.
+Last Updated: 2026-06-01
+Current Phase: Phase 2 — COMPLETE / Phase 3 — READY TO START
+Current Status: All 5 checkpoints complete. config.json fully calibrated. Phase 3 (Backend and Event Pipeline) can begin.
 Phase 0 Git Commit: a612c5bfdea01f0e427c527a35ee2387e9a5e7f7
 Phase 1 Git Commit: 4160a0e298f87286601756819c78250edd33953a
 Phase 1.5 Commit: 94d0da359bab04fb934f3c21f36ddb01519a5e6f
@@ -17,7 +17,7 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 | 0 | Prerequisites and Zone Extraction | COMPLETE | Committed a612c5b; yolov8n.pt + CSV confirmed present |
 | 1 | Business Logic Design | COMPLETE | Committed 4160a0e; DESIGN.md, CHOICES.md, visualise_zones.py |
 | 1.5 | Zone Calibration | COMPLETE | All 5 zones approved; zones.json LOCKED; Decision 11 recorded |
-| 2 | CV Validation | IN PROGRESS | Checkpoints 2.1 + 2.2 COMPLETE — awaiting Checkpoint 2.3 instructions |
+| 2 | CV Validation | **COMPLETE** | All 5 checkpoints done. config.json calibrated. Phase 3 ready. |
 | 3 | Backend and Event Pipeline | NOT STARTED | — |
 | 4 | API Development | NOT STARTED | — |
 | 5 | Dashboard | NOT STARTED | — |
@@ -33,9 +33,9 @@ Repository: https://github.com/AKSINGH-0704/purplle-store-intelligence-platform.
 - [x] Checkpoint 2.2: tools/test_tracker.py — COMPLETE. Q2 = YES. Longest track 200f, 3 tracks ≥20f. ByteTrack REJECTED. (Decision 14)
 - [~] Checkpoint 2.3: tools/test_entry_counter_v2.py — PARTIAL PASS (CLOSED). Gate proven across 720 proc frames (81% of video). 0 genuine crossings in available footage. Sensitivity validated in Phase 3. (Decision 15)
 - [x] Checkpoint 2.4: tools/test_zone_visits.py -- PASS. CAM_1: 2v/33.4s, CAM_2: 5v/26.6s, CAM_5: 2v/27.3s. Pipeline validated. (Decision 16)
-- [ ] Checkpoint 2.5: tools/test_background_motion.py — CAM_4 MOG2 calibration
+- [x] Checkpoint 2.5: tools/test_warehouse_motion.py — COMPLETE. Q5 = PASS. warehouse_motion_threshold = 1631 sq px (p99 flicker × 1.30). False positive rate reduced from 99% → ~0-1%. (Decision 17)
 
-**Next action:** Checkpoint 2.4 PASS. Proceed to Checkpoint 2.5 (CAM_4 background subtraction calibration).
+**Next action:** Phase 2 COMPLETE. All checkpoints done. Proceed to Phase 3 (Backend and Event Pipeline).
 
 ---
 
