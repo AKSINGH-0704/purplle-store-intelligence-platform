@@ -1,0 +1,209 @@
+{
+  "processing_metadata": {
+    "run_at": "2026-06-01T17:29:17.240525+00:00",
+    "quick_mode": false,
+    "total_elapsed_sec": 142.6,
+    "config_snapshot": {
+      "max_frames_per_camera": 1000,
+      "frame_skip": 5,
+      "cam4_override": "full_video"
+    },
+    "camera_elapsed_sec": {
+      "CAM_1": 30.3,
+      "CAM_2": 27.2,
+      "CAM_5": 30.8,
+      "CAM_3": 25.7,
+      "CAM_4": 28.1
+    }
+  },
+  "event_counts": {
+    "total": 51,
+    "by_type": {
+      "zone_entry": 20,
+      "zone_exit": 20,
+      "zone_dwell": 9,
+      "warehouse_motion": 2
+    }
+  },
+  "funnel": {
+    "entry_count": 0,
+    "zone_visits": {
+      "main_floor": 5,
+      "skincare": 2,
+      "billing": 2
+    },
+    "avg_dwell_seconds": {
+      "main_floor": 26.16,
+      "skincare": 33.2,
+      "billing": 27.02
+    },
+    "transaction_count": 24,
+    "staff_filtered_count": 0,
+    "funnel_validation": "warning",
+    "validation_notes": [
+      "Check A: billing interactions (2) exceed entry count (0). Expected -- CAM_3 Q3 status is Partial Pass. Crossing mechanics are validated synthetically; real-world sensitivity is unverified on the available footage. entry_count=0 is a footage limitation, not a detection failure. Monotonicity cannot be confirmed until CAM_3 crossing sensitivity is verified on real-world footage."
+    ],
+    "disclaimer": "Funnel metrics are aggregate counts only. No claim is made that the same individual appears at multiple funnel stages. Video data date: 16-04-2026. POS/CSV data date: 10-04-2026. These datasets represent separate days; no individual-level matching is performed or implied anywhere in this system. CAM_3 entry count reflects Q3 Partial Pass status: crossing mechanics are validated synthetically but real-world sensitivity is unverified on the available footage. An entry_count of 0 is a footage limitation, not a detection failure."
+  },
+  "anomalies": [
+    {
+      "type": "unusual_warehouse_activity",
+      "severity": "warning",
+      "message": "2 warehouse motion frame(s) detected; 2 classified as sustained restocking.",
+      "business_recommendation": "Verify this was a scheduled restocking operation. Unscheduled warehouse access may indicate a security concern.",
+      "triggered_at": "2026-06-01T17:29:16.782092+00:00",
+      "camera": "CAM_4",
+      "zone": "warehouse"
+    }
+  ],
+  "csv_analytics": {
+    "transactions": 24,
+    "gmv": 44920.0,
+    "nmv": 34831.74,
+    "top_categories": [
+      {
+        "name": "makeup",
+        "gmv": 28803.0,
+        "transaction_count": 17
+      },
+      {
+        "name": "skin",
+        "gmv": 11808.0,
+        "transaction_count": 12
+      },
+      {
+        "name": "hair",
+        "gmv": 2398.0,
+        "transaction_count": 4
+      },
+      {
+        "name": "personal-care",
+        "gmv": 899.0,
+        "transaction_count": 4
+      },
+      {
+        "name": "bath-and-body",
+        "gmv": 763.0,
+        "transaction_count": 8
+      },
+      {
+        "name": "fragrance",
+        "gmv": 249.0,
+        "transaction_count": 1
+      }
+    ],
+    "category_distribution": {
+      "makeup": 64.12,
+      "skin": 26.29,
+      "hair": 5.34,
+      "personal-care": 2.0,
+      "bath-and-body": 1.7,
+      "fragrance": 0.55
+    },
+    "avg_basket_depth": 4.88,
+    "salesperson_performance": [
+      {
+        "name": "Zufishan Khazra",
+        "nmv": 16583.38,
+        "transactions": 7
+      },
+      {
+        "name": "kasthuri v",
+        "nmv": 6541.95,
+        "transactions": 5
+      },
+      {
+        "name": "Shashikala .",
+        "nmv": 4631.7,
+        "transactions": 7
+      },
+      {
+        "name": "Priya v",
+        "nmv": 3665.75,
+        "transactions": 3
+      },
+      {
+        "name": "Naziya Begum",
+        "nmv": 3408.96,
+        "transactions": 2
+      }
+    ],
+    "brand_split": {
+      "private_brand_gmv_pct": 70.42,
+      "external_brand_gmv_pct": 29.58
+    },
+    "promotion_effectiveness": [
+      {
+        "offer_name": "Buy 2 Get 1 Faces and Ny bae",
+        "gmv": 21784.0,
+        "transaction_count": 7
+      },
+      {
+        "offer_name": "Buy 1 @ 10% Off- CosRX-Klairs-Beauty Of Joseon",
+        "gmv": 3720.0,
+        "transaction_count": 3
+      },
+      {
+        "offer_name": "Buy 2 Get 1 on PB",
+        "gmv": 3279.0,
+        "transaction_count": 2
+      },
+      {
+        "offer_name": "Buy 2 Get 2 on Sheet Mask",
+        "gmv": 2673.0,
+        "transaction_count": 5
+      },
+      {
+        "offer_name": "FLAT 40% OFF ON NON USM- 1",
+        "gmv": 2189.0,
+        "transaction_count": 3
+      },
+      {
+        "offer_name": "Buy 1 Get 10% off Bare /Chem/Sunscoop",
+        "gmv": 1324.0,
+        "transaction_count": 2
+      },
+      {
+        "offer_name": "B2@15% off Maybelline-BAU",
+        "gmv": 1218.0,
+        "transaction_count": 1
+      },
+      {
+        "offer_name": "10% off on Other",
+        "gmv": 818.0,
+        "transaction_count": 4
+      },
+      {
+        "offer_name": "Buy 1 @ 10% foxtale Event",
+        "gmv": 495.0,
+        "transaction_count": 1
+      }
+    ],
+    "hourly_revenue": {
+      "12": 13014.0,
+      "13": 597.0,
+      "14": 225.0,
+      "15": 2166.0,
+      "16": 7541.0,
+      "17": 2373.0,
+      "18": 3962.0,
+      "19": 13069.0,
+      "20": 1199.0,
+      "21": 774.0
+    }
+  },
+  "staff_filter_summary": {
+    "staff_filtered_count": 0,
+    "staff_filter_enabled": true,
+    "cam3_staff_track_count": 0,
+    "cam5_staff_track_count": 0
+  },
+  "video_hashes": {
+    "CAM_1": "8ca666cd17bdd329170c6ddf5586bf09830f502c856da6139661f3581f983c71",
+    "CAM_2": "28914b2447af515565e36b3a972fa812b31f3f87b3123ad6f0cf5d97096667fd",
+    "CAM_3": "7f552b1b243c4270251a7a09e63cd156bfe3891ef112a438b370038786acf57d",
+    "CAM_4": "b58a8a45be00631319d939aef0eb7eeeed877bd83b3a9d3324c4db1ec006a014",
+    "CAM_5": "4d2ad25fd6300e41b0f5cd9a118861414575216692e42cf0de8b7b6bc0028164"
+  },
+  "validation_warnings": []
+}
