@@ -1,0 +1,20 @@
+# Video files -- 648 MB total, not needed in Docker image.
+# Mount inputs/ externally if running process_videos.py inside the container.
+inputs/
+
+# Runtime artifacts
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Git history
+.git/
+
+# Development inspection outputs
+tools/warehouse_motion_output/
+
+# Local environment
+.env
