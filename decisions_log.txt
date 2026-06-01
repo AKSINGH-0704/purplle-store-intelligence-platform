@@ -404,10 +404,56 @@ Trade-off: Threshold is calibrated for the observed lighting conditions in
   automatically.
 CHOICES.md section: Detection Strategy — CAM 4
 
+Decision 18:
+Date: 2026-06-01
+Context: Checkpoint 3.2 investigation — CAM_4 background subtraction produced
+  451 false-positive events (>99% flicker) at warehouse_motion_threshold=1631.
+  Phase 2 calibration was methodologically flawed: flicker_areas sample was
+  capped at CURRENT_THRESHOLD × 3 = 1500 sq px, but actual flicker areas spanned
+  10,000-50,000 sq px on the reflective tile floor (y=246-355 in the zone).
+  Four-stage investigation: (1) frame inspection confirmed floor dominates 74%
+  of foreground pixels; (2) algorithmic separation using compactness, contour
+  count, and spatial features yielded precision <0.06 — not viable; (3) warm-up
+  suppression (200 frames) implemented — eliminated frame-0 cold-start class
+  but did not resolve 448 residual flicker events; (4) zone geometry revision
+  required as the only viable solution.
+Decision: Two-part correction applied:
+  Part A — Zone geometry: CAM_4 polygon bottom raised from y=355 to y=246,
+  excluding the reflective tile floor band (y=246-355) from the detection zone.
+    Evidence: 74% of foreground pixels in floor band; 89% of qualifying frames
+    floor-dominated; 14 inspected frames confirmed zero body silhouettes in floor
+    area; genuine activity candidates (t=92s, 112s) were in upper zone (y<246).
+    Retained: shelf/box storage (y=30-138) and workbench (y=138-246).
+  Part B — Threshold recalibration: p99 of noise in revised zone = 21,604 sq px.
+    Recommended threshold = 21,604 × 1.30 = 28,085 sq px.
+    This replaces the Phase 2 value of 1,631.
+  Results after correction:
+    Events at T=28,085 (revised zone, full video): 2
+    Both events at t=92.3s — confirmed genuine scene change (boxes rearranged,
+    visually verified in frame 2306, contour area 63,617 sq px = 47% of zone).
+    False positive rate: ~0 in observed footage.
+  Additional finding: MOG2 warm-up suppression (200 frames = 8s) implemented
+    in background_motion.py as _WARMUP_FRAMES=200 constant (matches _MOG2_HISTORY).
+    Events are not emitted during warmup; MOG2 still receives frames to build model.
+  Additional finding — processing window gap: CAM_4.mp4 is 3,647 frames (146s).
+    Config max_frames_per_camera=1000 covers only the first 40s. Genuine events
+    at t=92s are beyond this window. In production, max_frames_per_camera should
+    be increased for CAM_4 or set to cover the full recording. Deferred to Phase 3
+    orchestrator (process_videos.py) implementation.
+Rationale: Zone geometry change was approved after algorithmic separation was
+  proven non-viable across four characterisation methods (contour count,
+  compactness, spatial distribution, temporal persistence). Threshold methodology
+  unchanged: p99 × 1.30 applied to the corrected noise population.
+Trade-off: Events requiring body motion ONLY in the floor area (y=246-355) would
+  be missed. Given CAM_4 scene layout (shelves/workbench above y=246, floor below),
+  all observed genuine activity is above the exclusion boundary. Re-calibration
+  required if camera is physically repositioned.
+CHOICES.md section: Detection Strategy — CAM 4
+
 - [x] Entry line coordinates and direction vector for CAM 3 finalised — RESOLVED Decision 11
 - [x] ByteTrack accept/reject decision after Phase 2 validation test — RESOLVED Decision 14 (REJECTED)
 - [x] warehouse_motion_threshold final calibrated value after CAM 4 flicker testing
-      — RESOLVED Decision 17: 1631 sq px (p99 flicker × 1.30)
+      — RESOLVED Decision 17 (1631, now superseded by Decision 18: 28085)
 - [x] tracker_distance_threshold confirmed at 80px or adjusted after Phase 2 test
       — RESOLVED Decision 14: 80px RETAINED
 - [ ] Dwell merge window value confirmed after Phase 2 testing

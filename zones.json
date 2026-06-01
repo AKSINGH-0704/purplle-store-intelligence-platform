@@ -97,16 +97,16 @@
       ],
       [
         630,
-        355
+        246
       ],
       [
         10,
-        355
+        246
       ]
     ],
     "intelligence_layer": "operational",
     "detection_method": "background_subtraction",
-    "notes": "Full floor coverage. Lighting flicker observed — warehouse_motion_threshold may need tuning above 500 during Phase 2 calibration."
+    "notes": "Upper two-thirds of frame only (y=30-246). Lower floor (y=246-355) excluded: 74% of foreground pixels were reflective tile floor flicker, not body silhouettes. Shelf/box storage (y=30-138) and workbench (y=138-246) retained. Threshold recalibrated post-geometry-change. See decisions_log.txt Decision 18."
   },
   "CAM_5": {
     "zone": "billing",
