@@ -481,6 +481,39 @@ CHOICES.md section: Staff Filtering Strategy
       — RESOLVED Decision 17 (1631, now superseded by Decision 18: 28085)
 - [x] tracker_distance_threshold confirmed at 80px or adjusted after Phase 2 test
       — RESOLVED Decision 14: 80px RETAINED
+Decision 20:
+Date: 2026-06-01
+Context: Checkpoint 3.5 — anomalies.py implementation. Anomaly 3 in the master plan
+  is described as "CAM_4 background subtraction detects significant motion outside a
+  configurable expected time window." This implies hour-of-day filtering: fire when
+  warehouse motion is detected between, e.g., 22:00 and 06:00.
+  Problem: run_background_motion() returns timestamp_seconds as seconds elapsed from
+  the start of the recording, not wall-clock time. Converting frame seconds to
+  actual hour-of-day requires the recording's wall-clock start time, which is not
+  available in any file in the repository (no EXIF metadata, no recording manifest,
+  no config key).
+Decision: Anomaly 3 is reframed from "motion outside expected hours" to
+  "any warehouse motion event triggers an operational alert."
+  Any warehouse_motion event is reported as Anomaly 3 with a recommendation to
+  verify it was a scheduled restocking operation. Severity is "warning" when
+  is_restocking_event=True (sustained motion consistent with shelf rearrangement),
+  "info" otherwise. The phrase "unusual" in the anomaly name is retained because
+  any detected motion in the warehouse is operationally significant and should
+  be verified by store management, regardless of time of day.
+  If wall-clock recording metadata becomes available in future (e.g. via a recording
+  manifest or camera timestamp overlay), hour-of-day filtering can be added using
+  the config keys warehouse_expected_start_hour and warehouse_expected_end_hour.
+  No config keys are added now because the feature cannot be tested.
+Rationale: Emitting a correct operational alert on any motion is more honest and
+  useful than emitting no alert because the time-filtering condition cannot be
+  evaluated. The reframe is documented here and in anomalies.py module docstring
+  so future maintainers understand the design gap.
+Trade-off: The anomaly fires for all warehouse motion, including scheduled restocking
+  during business hours. This produces false operational alerts in normal operation.
+  The business recommendation text explicitly tells the operator to verify the motion
+  was scheduled, which mitigates the impact of false alerts.
+CHOICES.md section: Anomaly Detection Strategy
+
 - [ ] Dwell merge window value confirmed after Phase 2 testing
 - [ ] requirements.txt exact version pinning completed after Phase 3 environment
       setup (pip freeze output replaces current >= bounds)
