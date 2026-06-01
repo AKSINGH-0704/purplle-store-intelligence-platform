@@ -79,6 +79,7 @@
       0,
       1
     ],
+    "door_x_gate": [250, 490],
     "intelligence_layer": "customer",
     "detection_method": "yolov8n",
     "notes": "entry_direction [0,1] means top-to-bottom = entering store. Reverse = exit. Line at y=170 is just inside the glass door threshold."
