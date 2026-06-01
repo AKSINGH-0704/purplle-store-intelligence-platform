@@ -308,8 +308,9 @@ def dashboard():
     """All analytics in one call. Designed for Streamlit dashboard consumption."""
     summary = _state["summary"]
     return {
-        "funnel":    summary.get("funnel", {}),
-        "anomalies": summary.get("anomalies", []),
-        "metrics":   _metrics_data(),
-        "health":    _health_data(),
+        "funnel":      summary.get("funnel", {}),
+        "anomalies":   summary.get("anomalies", []),
+        "metrics":     _metrics_data(),
+        "health":      _health_data(),
+        "zone_totals": _state.get("zone_totals", {}),
     }
