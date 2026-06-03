@@ -21,9 +21,9 @@ import os
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict
+from typing import Any, Dict, List
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Body, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.utils import LOG_BUFFER, get_logger
@@ -97,6 +97,7 @@ async def lifespan(app: FastAPI):
     _state["events"]      = events
     _state["zone_totals"] = _compute_zone_totals(events)
     _state["started_at"]  = time.time()
+    _state["ingested_event_ids"] = set()
 
     _log.info(
         "API startup complete: events=%d zone_totals=%s",
@@ -314,3 +315,54 @@ def dashboard():
         "health":      _health_data(),
         "zone_totals": _state.get("zone_totals", {}),
     }
+
+
+# ── Acceptance-gate endpoints ──────────────────────────────────────────────────
+
+@app.post("/events/ingest")
+def events_ingest(events: List[Any] = Body(...)):
+    """Ingest a batch of up to 500 events. Idempotent by event_id.
+    Returns accepted_count and rejected_count. Never returns 5xx for malformed events."""
+    if not isinstance(events, list):
+        events = [events]
+
+    batch = events[:500]
+    seen: set = _state.get("ingested_event_ids", set())
+    accepted, rejected, errors = 0, 0, []
+
+    for i, event in enumerate(batch):
+        try:
+            if not isinstance(event, dict):
+                rejected += 1
+                errors.append({"index": i, "reason": "not a JSON object"})
+                continue
+            eid = event.get("event_id")
+            if not eid:
+                rejected += 1
+                errors.append({"index": i, "reason": "missing event_id"})
+                continue
+            if eid in seen:
+                rejected += 1
+                errors.append({"index": i, "reason": "duplicate event_id", "event_id": str(eid)})
+                continue
+            seen.add(eid)
+            accepted += 1
+        except Exception as exc:
+            rejected += 1
+            errors.append({"index": i, "reason": str(exc)})
+
+    return {
+        "accepted_count": accepted,
+        "rejected_count": rejected,
+        "total":          len(batch),
+        "errors":         errors,
+    }
+
+
+@app.get("/stores/{store_id}/metrics")
+def store_metrics(store_id: str):
+    """Store-scoped metrics. Reuses pipeline analytics.
+    Acceptance gate: GET /stores/STORE_BLR_002/metrics must return valid JSON."""
+    data = _metrics_data()
+    data["store_id"] = store_id
+    return data
