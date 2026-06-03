@@ -366,3 +366,46 @@ def store_metrics(store_id: str):
     data = _metrics_data()
     data["store_id"] = store_id
     return data
+
+
+@app.get("/stores/{store_id}/funnel")
+def store_funnel(store_id: str):
+    """Store-scoped aggregate funnel. Part B scoring endpoint."""
+    data = dict(_state["summary"].get("funnel", {}))
+    data["store_id"] = store_id
+    return data
+
+
+@app.get("/stores/{store_id}/anomalies")
+def store_anomalies(store_id: str):
+    """Store-scoped anomalies. Part B scoring endpoint."""
+    return {
+        "store_id":  store_id,
+        "anomalies": _state["summary"].get("anomalies", []),
+    }
+
+
+@app.get("/stores/{store_id}/heatmap")
+def store_heatmap(store_id: str):
+    """Zone visit frequency + avg dwell normalised 0-100.
+    data_confidence='low' when fewer than 20 sessions (per challenge spec)."""
+    funnel = _state["summary"].get("funnel", {})
+    visits = funnel.get("zone_visits", {})
+    dwell  = funnel.get("avg_dwell_seconds", {})
+    total_sessions = sum(visits.values())
+    max_v = max(visits.values(), default=1)
+    max_d = max(dwell.values(), default=1)
+    zones: Dict[str, Any] = {}
+    for zone in sorted(set(list(visits.keys()) + list(dwell.keys()))):
+        zones[zone] = {
+            "visit_frequency_normalised": round(visits.get(zone, 0) / max_v * 100),
+            "avg_dwell_normalised":       round(dwell.get(zone, 0) / max_d * 100),
+            "visit_count":                visits.get(zone, 0),
+            "avg_dwell_seconds":          dwell.get(zone, 0.0),
+        }
+    return {
+        "store_id":        store_id,
+        "zones":           zones,
+        "data_confidence": "low" if total_sessions < 20 else "ok",
+        "session_count":   total_sessions,
+    }
