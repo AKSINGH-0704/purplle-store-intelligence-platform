@@ -1,3 +1,13 @@
+# PROMPT: Fix the v1 entry counter false positive by adding a doorway x-gate
+# that restricts valid crossings to x=250..490 (the physical door opening).
+# Derive gate bounds from visual inspection of zones_preview/CAM_3_frame100.jpg.
+# Add a SUPPRESSED counter to track events the gate removes. Run on 3600 frames
+# to test on 81% of available CAM_3 footage.
+# CHANGES MADE: AI suggested using a fixed 20% margin from frame edges; changed
+# to visually-derived x=250..490 from the actual frame inspection. Added
+# v2_extended run to 3600 source frames — AI had only proposed 1000. Confirmed
+# direction vector [0,1] correct; AI had flagged this as uncertain.
+
 """
 Checkpoint 2.3 v2 — Entry line crossing validation with doorway x-gating.
 

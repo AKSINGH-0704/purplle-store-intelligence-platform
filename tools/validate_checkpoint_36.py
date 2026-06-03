@@ -1,3 +1,14 @@
+# PROMPT: Write a validation script for process_videos.py that checks: events.json
+# is non-empty after a pipeline run, pipeline_summary.json has all 8 required
+# top-level keys, video_hashes.json exists with 5 camera entries, and the
+# summary is JSON-serializable. Run as a structural post-pipeline check without
+# re-running the full pipeline.
+# CHANGES MADE: AI generated a script that re-ran process_videos.py as part of
+# validation; changed to load the committed events.json output rather than
+# re-running (validation should check outputs, not re-execute production code).
+# Added the CAM_4 full-video override verification (cam4_override key in
+# config_snapshot). Added JSON serializability check — AI had not included it.
+
 """
 Checkpoint 3.6 validation -- pipeline orchestrator (process_videos.py).
 

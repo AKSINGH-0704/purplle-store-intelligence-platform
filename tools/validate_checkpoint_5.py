@@ -1,3 +1,14 @@
+# PROMPT: Write a structural validation script for the Streamlit dashboard that
+# does not require a running server. Check: dashboard.py has valid Python syntax,
+# uses API_BASE_URL environment variable, has @st.cache_data(ttl=60) decorator,
+# implements all 5 tab names, uses go.Funnel for the customer journey chart,
+# and has st.error() + st.stop() for API failure handling.
+# CHANGES MADE: AI generated a live browser test using Selenium; changed to AST
+# parsing and source inspection (no browser driver available in the environment).
+# Added the st.metric() count assertion (must have ≥10 KPI cards) — AI had not
+# included it. Added the single-data-source check (fetch_dashboard() must be the
+# only /dashboard caller) — AI had allowed multiple API calls per tab.
+
 """
 Checkpoint 5 validation -- Streamlit dashboard (src/dashboard.py).
 

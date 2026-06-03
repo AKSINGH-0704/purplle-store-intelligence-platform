@@ -1,3 +1,14 @@
+# PROMPT: Write a validation script for session_manager.py zone visit detection.
+# Use synthetic detection events as fixtures to test: (1) zone_dwell events are
+# emitted after min_dwell_for_visit_seconds; (2) dwell merge rule correctly
+# merges a split session when no other active track is in the zone; (3) dwell
+# merge does NOT merge two different visitors in the same zone. Exit 0 all pass.
+# CHANGES MADE: AI omitted the concurrent-visitor negative test case for dwell
+# merge — added test case where merge must NOT occur because another track is
+# present. AI had the merge condition wrong (time-window only); corrected to
+# require no-other-active-track condition. Added CAM_1/2/5 ground truth check
+# against Phase 2 validation results (2/5/2 visits).
+
 """
 Checkpoint 3.3A validation — session_manager zone visit detection.
 

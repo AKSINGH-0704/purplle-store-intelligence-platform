@@ -1,3 +1,16 @@
+# PROMPT: Write a validation script for funnel.py and anomalies.py. For funnel:
+# verify 5-stage aggregate funnel with monotonicity validation that emits
+# funnel_validation="warning" when entry_count=0 and billing>0. For anomalies:
+# verify all 5 detectors run without error on synthetic fixture data; verify
+# each detector returns business_recommendation and triggered_at. Use synthetic
+# fixtures with boundary conditions for all 5 anomaly types.
+# CHANGES MADE: AI generated a single all-passing fixture; added boundary
+# condition fixtures: one for each anomaly threshold (just-below = no fire,
+# just-above = fires). Added the 70% processing window boundary test for
+# Anomaly 4 (zone abandonment) — AI had not included this edge case.
+# Corrected Anomaly 3 — AI generated hour-of-day logic; overrode to
+# any-warehouse-motion logic (wall-clock time unavailable from frame seconds).
+
 """
 Checkpoint 3.5 validation -- funnel and anomaly detectors.
 

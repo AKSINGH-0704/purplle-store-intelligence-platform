@@ -1,3 +1,14 @@
+# PROMPT: Write a FastAPI endpoint validation script using TestClient. Test all
+# 7 endpoints: /health, /metrics, /funnel, /anomalies, /zone_metrics/{zone},
+# /events/sample, /dashboard. Verify each returns HTTP 200 and valid JSON.
+# Verify /zone_metrics/invalid_name returns HTTP 404. Verify all responses are
+# under 500ms. No uvicorn server required — use in-process TestClient.
+# CHANGES MADE: AI generated tests using requests against a live server; changed
+# to FastAPI TestClient (no server needed). Added the response-time assertion
+# (must be <500ms) — AI had only checked status codes. Added /zone_metrics/
+# 404 negative test and valid_zones field check in 404 body. Added schema
+# assertion for /health (must contain status, events_loaded, video_hashes).
+
 """
 Checkpoint 4 validation -- FastAPI endpoints.
 

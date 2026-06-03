@@ -1,3 +1,14 @@
+# PROMPT: Write a structural validation script for the Docker configuration.
+# Check that .dockerignore excludes inputs/ (648 MB video files), both
+# Dockerfiles use python:3.11-slim, docker-compose.yml has depends_on with
+# service_healthy, API_BASE_URL=http://api:8000 is set for the dashboard
+# service, and the dashboard Dockerfile installs no CV/ML packages.
+# CHANGES MADE: AI generated a script that ran docker compose config to
+# validate; changed to file-content parsing (Docker not available in the
+# validation environment). Added the urllib healthcheck verification (AI had
+# suggested curl, which is absent from python:3.11-slim). Added the no-GPU
+# assertion (deploy/runtime:nvidia must not appear in compose file).
+
 """
 Checkpoint 6 validation -- Docker configuration correctness.
 

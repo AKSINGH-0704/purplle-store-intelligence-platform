@@ -1,3 +1,14 @@
+# PROMPT: Write a structural validation script for the Phase 3.1 foundation
+# layer. Check that src/utils.py exports all required event factories, that
+# zones.json has real polygon coordinates for all 5 cameras, that config.json
+# has all required keys, and that SHA256 hashes can be computed on the video
+# files. Exit 0 on all pass, exit 1 on any failure.
+# CHANGES MADE: AI generated a single pass/fail output; changed to per-check
+# PASS/FAIL with descriptive labels so individual failures are identifiable.
+# Added polygon non-empty assertion — AI had only checked key existence, not
+# that coordinates were filled in (non-empty arrays). Added video hash
+# computation test against actual inputs/ files.
+
 """
 Checkpoint 3.1 validation — foundation layer smoke test.
 

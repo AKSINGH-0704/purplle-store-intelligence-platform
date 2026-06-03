@@ -1,3 +1,12 @@
+# PROMPT: Write an entry line crossing test for CAM_3.mp4 using a horizontal
+# line at y=170 across the full frame width. Track centroid crossings with
+# direction vector [0,1] (downward = entry). Count ENTRY and EXIT events in
+# 1000 frames and print results.
+# CHANGES MADE: Discovered a false positive: corridor pedestrian at x>490
+# triggered ENTRY without entering the store. This v1 script is preserved as
+# the baseline to document the false positive root cause. v2 adds a door x-gate
+# to fix it. AI had not anticipated the corridor overlap edge case.
+
 """
 Checkpoint 2.3 — Entry line crossing validation.
 

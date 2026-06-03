@@ -560,3 +560,41 @@ If a video file is replaced and `process_videos.py` is rerun, hashes change, eve
 - **Multi-store deployment:** zones.json is deliberately designed to be portable across store layouts. Different stores require only a new zone configuration file — no code changes.
 - **LLM-generated insights:** Structured events and business metrics could feed a language model to generate natural-language store manager reports.
 - **Staffing intelligence:** With proper badge/face recognition, staff movement patterns could become an operational scheduling input rather than a filtered noise source.
+
+---
+
+## 17. AI-Assisted Decisions
+
+This section documents three specific points where AI tooling shaped the system design — including decisions that were accepted, one that was overridden, and one where the AI recommendation was correct but required an additional constraint discovered through implementation.
+
+### Decision 1 — CAM 4 Detection Method: Uniform YOLO vs Background Subtraction (AI overridden)
+
+**AI recommendation:** Use YOLOv8-nano uniformly across all five cameras. The AI argued this produces person-level bounding boxes from every camera including the warehouse, enabling consistent downstream event schemas and richer analytics.
+
+**What I chose:** OpenCV MOG2 background subtraction for CAM 4 only. YOLOv8-nano retained for CAM 1, 2, 3, 5.
+
+**Why I overrode the recommendation:** The warehouse operational question is "is there activity in the storage zone?" — not "is there a person?" MOG2 answers this directly without model inference overhead. The AI's suggestion prioritised architectural uniformity over fitness-for-purpose. The decision was validated empirically: Phase 3 calibration showed the warehouse floor is visually hostile to person detection (reflective tiles, overhead lighting flicker producing contour areas of 10,000–50,000 sq px). YOLO on CAM 4 footage would have required the same contour-area filtering that MOG2 applies natively, making YOLO a redundant processing step on top of motion detection.
+
+**Evidence:** After calibration at threshold=28,085 sq px (p99 flicker × 1.30), MOG2 produced 2 genuine events in 3,647 frames with ~0 false positives. The genuine events at t=92.3s were visually confirmed (boxes rearranged, contour area 63,617 sq px = 47% of detection zone).
+
+---
+
+### Decision 2 — Tracking Strategy: ByteTrack vs Centroid Tracker (AI recommendation accepted)
+
+**AI recommendation:** Reject ByteTrack for the target deployment environment. The AI specifically flagged: (1) ByteTrack requires scipy + lap/lapjv, which have platform-specific compilation requirements that can fail silently inside Docker; (2) for zone-level aggregate analytics — not person-level cross-camera journeys — centroid tracking with an 80px distance threshold is sufficient and has zero external dependency chain.
+
+**What I chose:** Centroid tracker, exactly as recommended.
+
+**Why I accepted the recommendation:** The risk framing was accurate and the failure mode described — ByteTrack initialising but producing garbage track IDs without raising an error — is the worst possible outcome for an analytics pipeline. Incorrect IDs would corrupt all zone metrics silently. The AI's argument for centroid tracking was grounded in the actual use case (zone-level counts, not person re-identification) rather than being a generic simplification argument.
+
+**Phase 2 validation confirmed the decision:** Centroid tracker maintained continuous IDs for 200/200 processed frames on 2 primary tracks in CAM_1.mp4. Average track length 65.7 processed frames. The 30-second dwell merge window (with the "no other active track" constraint, see Decision 3) handles the ID reassignment case that centroid tracking produces on occlusion.
+
+---
+
+### Decision 3 — Dwell Time Merge Rule: Simple Window vs Conditional Merge (AI suggestion modified)
+
+**AI recommendation:** Implement a 30-second time-window merge: if a new track appears in the same zone within 30 seconds of a previous track ending, merge the dwell sessions. This corrects the track ID reassignment that occurs when a person is briefly occluded.
+
+**What I chose:** 30-second window merge with an additional constraint: merge only when no other active track currently exists in the zone.
+
+**Why I modified the recommendation:** The simple time-window merge fails in the concurrent-visitor scenario. If Customer A leaves the skincare zone at t=40s and Customer B enters at t=50s — a 10-second gap within the 30-second window — the AI's version merges them into a single 50-second session, inflating dwell time and undercounting unique visitors. The "no other active track" condition prevents this by verifying zone occupancy at merge time. This constraint is non-obvious and was identified by thinking through the edge case independently of the AI suggestion. It is implemented in `src/session_manager.py` and documented in CHOICES.md Section 5.

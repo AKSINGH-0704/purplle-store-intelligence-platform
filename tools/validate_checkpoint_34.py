@@ -1,3 +1,14 @@
+# PROMPT: Write a validation script for staff_filter.py and csv_analytics.py.
+# For staff_filter: verify run_staff_filter() returns staff_filtered_count,
+# staff_filter_enabled, and camera-specific track ID sets. For csv_analytics:
+# verify run_csv_analytics() returns all 11 required metrics including gmv, nmv,
+# transactions, top_categories, salesperson_performance, promotion_effectiveness.
+# CHANGES MADE: AI generated a single integration test calling both functions
+# with real data files; split into unit contract checks (schema assertions) and
+# integration run. Added the staff_filtered field schema placeholder validation
+# (must be False on emission, runtime classification is authoritative). Verified
+# actual CSV figures against known ground truth (24 transactions, GMV 44,920).
+
 """
 Checkpoint 3.4 validation — staff_filter and csv_analytics.
 

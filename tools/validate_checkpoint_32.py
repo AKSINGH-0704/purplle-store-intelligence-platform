@@ -1,3 +1,13 @@
+# PROMPT: Write a contract test for the Phase 3.2 detection layer. Verify that
+# run_detection() emits events with the required envelope fields (event_id,
+# event_type, camera, frame_idx, timestamp_seconds). Verify that
+# run_background_motion() emits warehouse_motion events with contour_area.
+# Check that the CAM_4 polygon recalibration (y=246 bottom) is in zones.json.
+# CHANGES MADE: AI generated generic import checks; added actual function call
+# tests using a small synthetic video frame sequence to verify event emission.
+# Added the CAM_4 zone geometry assertion (polygon bottom y<=246) — AI had not
+# included the recalibration validation. Added warm-up frame suppression check.
+
 """
 Checkpoint 3.2 validation -- detection layer contract test.
 

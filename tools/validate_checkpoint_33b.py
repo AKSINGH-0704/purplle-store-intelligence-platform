@@ -1,3 +1,14 @@
+# PROMPT: Write a validation script for entry_counter.py crossing logic. Test:
+# (1) centroid crossing the entry line in [0,1] direction emits crossing_entry;
+# (2) reverse crossing emits crossing_exit; (3) centroid inside door x-gate
+# [250,490] triggers; (4) centroid outside x-gate is suppressed. Use synthetic
+# centroid positions. Also run a smoke test on actual CAM_3.mp4 frames.
+# CHANGES MADE: AI generated tests only for the happy-path crossing direction.
+# Added the door x-gate boundary tests (x=249 suppressed, x=250 triggers,
+# x=490 triggers, x=491 suppressed) — AI had not tested gate boundaries.
+# Added camera_id guard test (non-CAM_3 must raise ValueError). Corrected
+# the direction vector check — AI had used [0,-1] (upward); changed to [0,1].
+
 """
 Checkpoint 3.3B validation — entry_counter crossing logic and gate behaviour.
 

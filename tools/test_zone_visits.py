@@ -1,3 +1,13 @@
+# PROMPT: Write a zone visit detection test across CAM_1 (skincare), CAM_2
+# (main_floor), and CAM_5 (billing) using zone polygons from zones.json.
+# Count qualifying visits where dwell_seconds >= min_dwell_for_visit_seconds=10.
+# Print visit count and average dwell per zone. Save visual output frames.
+# CHANGES MADE: AI initially used a fixed 5-second dwell threshold; changed to
+# read min_dwell_for_visit_seconds from config.json to match production logic.
+# Added ground-truth consistency check (skincare avg dwell should be >10s);
+# AI had only printed results without any assertions. Added the "tracks present
+# at frame 0" edge case handling that AI had omitted.
+
 """
 Checkpoint 2.4 -- Zone visit detection validation.
 

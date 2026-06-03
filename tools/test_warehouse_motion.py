@@ -1,3 +1,14 @@
+# PROMPT: Write a MOG2 background subtraction calibration script for CAM_4.mp4.
+# Process 1000 consecutive frames (no frame_skip — MOG2 needs temporal continuity).
+# Measure all contour areas produced, classify frames as static/flicker/above-threshold.
+# Compute p99 of flicker contour areas and recommend a calibrated threshold
+# at p99 * 1.30 safety margin.
+# CHANGES MADE: AI suggested sampling every 5th frame (frame_skip=5); changed to
+# sequential processing because MOG2 temporal model requires consecutive frames.
+# Added the p99 * 1.30 calibration methodology — AI had suggested a fixed
+# multiplier without statistical grounding. Added the genuine-event preservation
+# check (ensure threshold keeps the t=92.3s event).
+
 """
 Checkpoint 2.5 -- CAM_4 background subtraction calibration.
 

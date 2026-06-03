@@ -85,6 +85,12 @@ Two-part correction:
 
 Result: 2 events in full video processing, both at t=92.3s (frame 2306, contour area 63,617 sq px — 47% of zone). Confirmed genuine: boxes visually rearranged in that frame. False positive rate: ~0.
 
+**AI suggestion — detection model (DESIGN.md §17, Decision 1):** Initial recommendation was YOLOv8-nano uniformly across all five cameras. AI noted this would produce person-level bounding boxes from every camera, enabling a consistent event schema.
+
+**Final choice and why:** Rejected uniform YOLO for CAM 4. The warehouse question is activity detection, not person identification. MOG2 answers it in ~15ms per frame with no model dependency. YOLO on the warehouse scene would require identical contour-area filtering downstream, making it a redundant processing step. The AI prioritised uniformity; the choice prioritised fitness-for-purpose. See DESIGN.md §17 for empirical validation.
+
+---
+
 **CAM 4 full-video processing override (decisions_log.txt #21)**
 
 `config.json` sets `max_frames_per_camera=1000`, calibrated for YOLO cameras. CAM_4.mp4 is 3,647 frames (146s) — genuine events at t=92.3s fall outside the 1000-frame window. `process_videos.py` overrides this for CAM_4 only using `_CAM4_MAX_FRAMES = 999_999`, so `min(999_999, 3647) = 3647`. All YOLO cameras retain the 1000-frame limit. `config.json` is unchanged.
@@ -115,6 +121,10 @@ ByteTrack remains a documented fallback. Phase 2 validation will test: does a si
 The two primary tracks (IDs 0 and 1) maintained continuity for the full 200-frame window with no fragmentation. Short-lived IDs (3–6) represent occlusion and edge-frame events, handled by the dwell merge rule in `session_manager.py`.
 
 `tracker_distance_threshold=80px` retained — no change to `config.json`. ByteTrack formally rejected: the centroid tracker passes the Phase 2 gate on actual footage and has zero external dependency chain.
+
+**AI suggestion — tracking choice:** AI recommended the centroid tracker over ByteTrack, reasoning that ByteTrack's lap/lapjv dependency chain fails silently inside Docker on CPU-only environments and that zone-level aggregate analytics do not require ByteTrack's multi-object occlusion handling.
+
+**Final choice and why:** Accepted the recommendation. The silent-failure risk was the deciding factor — a tracker that produces wrong IDs without raising an error corrupts all downstream zone metrics. The AI's reasoning was sound and matched the actual dependency analysis. The dwell merge rule (with the "no other active track" condition, added independently) handles the ID reassignment case that centroid tracking produces on occlusion — a constraint the AI did not suggest but which was necessary for correctness in concurrent-visitor scenarios.
 
 **Dwell merge rule (decisions_log.txt #5 — see also DESIGN.md Section 6.2)**
 
@@ -148,7 +158,22 @@ The door x-gate was added in Phase 2 (Decision 15) after v1 produced a false pos
 
 ---
 
-## 7. Aggregate-Only Funnel Design
+## 7. Event Schema Design
+
+**Options considered:**
+1. Full persistent Re-ID schema: `visitor_id` persists across camera views and sessions using appearance-based Re-ID (OSNet or bounding box trajectory). Enables true funnel deduplication and cross-camera person journeys.
+2. Session-token schema: `visitor_id` is a new UUID per entry session, unique within a single visit. Enables within-camera session deduplication without requiring cross-camera matching.
+3. Aggregate-only: integer `track_id` from within-camera centroid tracker. No cross-camera identity. Honest about the aggregate nature of all metrics.
+
+**AI suggestion:** Recommended option 2 (session-token schema) as the pragmatic balance. The AI specifically argued that session-token `visitor_id` enables funnel deduplication — preventing re-entries from inflating unique visitor counts — without requiring cross-camera ReID, making it implementable on CPU within the time constraints.
+
+**Final choice:** Option 3 — aggregate-only with integer `track_id`.
+
+**Why the AI suggestion was partially overridden:** A session-token `visitor_id` scoped to a single camera view is technically implementable but creates a misleading impression. A visitor moves through CAM_3 (entry), CAM_2 (floor), CAM_1 (skincare), CAM_5 (billing) — four cameras produce four separate IDs with no mechanism to link them. Labelling these as `visitor_id` implies person-level identity that the system cannot provide and does not have. Displaying `visitor_id` = `VIS_abc` while being unable to confirm it belongs to the same person in any two cameras would make conversion rate calculations undefendable under scrutiny. The aggregate approach documents this boundary honestly and avoids overclaiming. The trade-off is no funnel session deduplication, which is acknowledged in every funnel API response disclaimer.
+
+---
+
+## 8. Aggregate-Only Funnel Design
 
 **No cross-camera person tracking (design principle)**
 
@@ -197,6 +222,10 @@ This is expected behaviour, not a detection failure. The 1000-frame window cover
 The solution: `events.json` is precomputed by running `process_videos.py` and committed to the repository. At startup, the API loads this file in under 2 seconds. Judges who want to verify live computation can optionally run `process_videos.py --quick` (< 5 minutes with `MAX_FRAMES=300`, `frame_skip=10`).
 
 This is how production systems work — precomputed indices that serve queries instantly, with separate batch jobs that update them.
+
+**AI suggestion — API architecture:** Precompute events at pipeline run time, commit the output to the repository, and load it at API startup. The AI argued this pattern matches production analytics systems (precomputed indices + separate batch refresh) and resolves the conflict between the 30-second startup target and the multi-minute processing time.
+
+**Final choice and why:** Accepted the recommendation. The startup-vs-processing conflict has no other clean resolution: live processing at startup would make every `docker compose up` take 2–10 minutes depending on hardware. The precomputed approach delivers both the fast-startup judge experience and a demonstrable live-recomputation path via `process_videos.py --quick` (< 5 minutes). The AI's production-systems framing was the right lens for this trade-off.
 
 ---
 

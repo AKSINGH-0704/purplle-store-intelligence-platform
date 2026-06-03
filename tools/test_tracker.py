@@ -1,3 +1,13 @@
+# PROMPT: Write a centroid tracker validation that runs on CAM_1.mp4 with
+# frame_skip=5 and tracker_distance_threshold=80px. Count unique track IDs
+# created, report the longest track in processed frames, and identify how many
+# tracks survive at least 20 consecutive processed frames. Evaluate whether
+# ByteTrack should be used instead.
+# CHANGES MADE: Added the ≥20-frame survival criterion — AI produced only total
+# unique ID count. Added average track length metric. Added explicit ByteTrack
+# rejection reasoning based on scipy/lapjv dependency risk in Docker. AI had
+# suggested leaving ByteTrack as a default; changed to centroid as default.
+
 """
 Checkpoint 2.2 — Centroid tracker validation.
 

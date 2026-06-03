@@ -1,3 +1,12 @@
+# PROMPT: Write a smoke test that loads yolov8n.pt and runs person detection on
+# frames 0, 100, and 200 of CAM_1.mp4 at 640x360 with confidence_threshold=0.5.
+# Print detection count and confidence range per frame. Save annotated images to
+# tools/yolo_test_output/. Confirm the model runs on CPU without GPU.
+# CHANGES MADE: Added explicit class=0 (person-only) filter — AI generated
+# output across all 80 COCO classes. Added minimum confidence assertion (must
+# exceed threshold on at least one detection per frame). Limited to 3 frames;
+# AI suggested 10, which is unnecessary for a smoke test.
+
 """
 Checkpoint 2.1 — YOLOv8-nano smoke test.
 
