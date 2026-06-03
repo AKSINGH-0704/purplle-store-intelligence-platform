@@ -1,175 +1,167 @@
 # Purplle Store Intelligence Platform
 
-A retail intelligence platform for the Purplle Brigade Road store built on
-computer vision, POS transaction data, and store layout-aware zone analytics.
+A store analytics pipeline built from raw CCTV footage and POS transaction data.
+Computer vision extracts customer behaviour across five camera zones; a REST API
+serves real-time metrics; a Streamlit dashboard surfaces the results for store
+managers and operations teams.
 
----
+## Key Capabilities
 
-## Quick Start
+- **Zone-aware detection**: store layout polygons (`zones.json`) derived from the
+  floor plan drive all zone classification; no hardcoded coordinates
+- **Three intelligence layers**: Customer traffic (video), Revenue analytics (POS),
+  and Operational alerts (warehouse + billing) kept separate and clearly labelled
+- **Staff movement filtering**: heuristic rules exclude likely staff crossings from
+  customer metrics; filtered count displayed transparently in System Health
+- **Anomaly detection**: five operational detectors including warehouse activity
+  alerts, queue buildup, and zone abandonment; each with a `triggered_at` timestamp
+  from actual pipeline computation
+- **Integrity defence**: SHA-256 fingerprints of all five input videos committed
+  alongside `events/events.json`; rerunning with different footage produces different hashes
+- **Two-service Docker deployment**: FastAPI backend (port 8000) and Streamlit
+  dashboard (port 8501) with health-checked startup ordering
+- **Live recomputation**: `process_videos.py --quick` reruns the full pipeline in
+  under five minutes and updates all API metrics on restart
+
+## Setup
 
 ```bash
-# Start the full platform (backend API + dashboard)
 docker compose up
-
-# Open dashboard
-http://localhost:8501
-
-# Optional: verify live computation (completes in < 5 minutes)
-python process_videos.py --quick
-
-# Full video processing (15–60+ minutes depending on hardware)
-python process_videos.py
 ```
 
-> **Note:** `docker compose up` loads precomputed events and starts instantly.
-> `process_videos.py` is the optional live recomputation path.
+Dashboard: http://localhost:8501  
+API docs: http://localhost:8000/docs
 
----
+The stack loads precomputed events at startup. No video files are required to run
+the platform. To rerun the detection pipeline, place MP4 files in `inputs/` first.
 
-## What This Platform Does
+## Results: Brigade Road Store
 
-Three separate intelligence layers, kept honest and distinct:
+Metrics from the committed pipeline run (5 cameras, 1000 frames each, 2026-06-01):
 
-| Layer | Source | Date |
-|-------|--------|------|
-| Customer Intelligence | 5 MP4 video files | 16-04-2026 |
-| Revenue Intelligence | POS CSV data | 10-04-2026 |
-| Operational Intelligence | CAM 4 + CAM 5 video | 16-04-2026 |
+| Metric | Value |
+|--------|-------|
+| Zone visits | 9 total (Main Floor: 5, Skincare: 2, Billing: 2) |
+| Average dwell time | 26-33 seconds per zone |
+| Transactions (POS) | 24 transactions, GMV Rs 44,920, NMV Rs 34,832 |
+| Top category | Makeup, 64% of GMV (Rs 28,803) |
+| Anomaly detected | Warehouse restocking confirmed at t=92.3s |
+| Pipeline runtime | 142.6s on Intel Core i7-1355U (13th Gen), 16 GB RAM, Windows 11 |
 
-No individual-level matching is claimed between video and CSV. The dates differ.
-These layers are reported separately and clearly labelled throughout.
-
----
-
-## Architecture Overview
+## Architecture
 
 ```
 zones.json + config.json
         |
-        v
-5 MP4 Videos + POS CSV
-        |
-        v
-Detection Layer
-  CAM 1,2,3,5: YOLOv8-nano + centroid tracker
-  CAM 4: OpenCV MOG2 background subtraction
-        |
-        v
-Zone Event Layer (entry crossings, dwell time, motion events)
-        |
-        v
-Business Logic (funnel, staff filter, 5 anomaly detectors, CSV analytics)
-        |
-        v
-FastAPI (port 8000) + Streamlit Dashboard (port 8501)
+CAM 1,2,3,5: YOLOv8-nano + centroid tracker      POS CSV
+CAM 4:       OpenCV MOG2 background subtraction       |
+        |                                             |
+Zone events (dwell, crossings, motion)        CSV analytics
+        |                                             |
+        +------------- Business Logic ----------------+
+               Funnel . Staff filter . Anomalies
+                             |
+             FastAPI :8000       Streamlit :8501
 ```
 
-Full architecture documentation: see `DESIGN.md` (assembled in Phase 7).
-
----
+CAM_4 uses background subtraction rather than YOLO. The warehouse question is
+"is there activity?" not "is there a person?", a deliberate architectural choice
+documented in `CHOICES.md`.
 
 ## Data Sources
 
-| File | Description |
-|------|-------------|
-| `inputs/CAM_1.mp4` | Skincare / Bath zone (~1.76 GB, 16-04-2026) |
-| `inputs/CAM_2.mp4` | Main Floor / Circulation zone (16-04-2026) |
-| `inputs/CAM_3.mp4` | Entrance / Exit (primary funnel camera, ~1.86 GB, 16-04-2026) |
-| `inputs/CAM_4.mp4` | Warehouse / Storage zone (16-04-2026) |
-| `inputs/CAM_5.mp4` | Billing Counter (16-04-2026) |
-| `data/Brigade_Bangalore_10_April_26.csv` | POS transaction data (10-04-2026) |
-| `zones.json` | Store layout zone definitions derived from `Brigade_Road_Store_layout.xlsx` |
+| File | Content | Date |
+|------|---------|------|
+| `inputs/CAM_1.mp4` | Skincare / Bath zone (~1.76 GB) | 16-04-2026 |
+| `inputs/CAM_2.mp4` | Main Floor / Circulation | 16-04-2026 |
+| `inputs/CAM_3.mp4` | Entrance / Exit (~1.86 GB) | 16-04-2026 |
+| `inputs/CAM_4.mp4` | Warehouse / Storage | 16-04-2026 |
+| `inputs/CAM_5.mp4` | Billing Counter | 16-04-2026 |
+| `data/Brigade_Bangalore_10_April_26.csv` | POS transaction records | 10-04-2026 |
+| `zones.json` | Store layout zone definitions | n/a |
 
-> MP4 files are excluded from git (`.gitignore`). Place them in `inputs/` before running.
+Video and POS data are from different dates. No individual-level matching between
+datasets is claimed or performed. All API responses label their data source.
 
----
+MP4 files are excluded from git (`.gitignore`). Place them in `inputs/` before
+running `process_videos.py`.
 
-## How Integrity Is Verified
+## Live Recomputation
 
-When `process_videos.py` runs, it computes a SHA256 hash of every video file
-and writes `events/video_hashes.json`. The System Health tab (Tab 5) displays
-these hashes. This proves that `events/events.json` was generated from the
-specific video files provided, not fabricated.
+```bash
+# Quick verification (300 frames, frame_skip=10, under 5 minutes)
+python process_videos.py --quick
 
-To verify:
-1. Run `python process_videos.py` with the original video files.
-2. Check that the hashes in `events/video_hashes.json` match those shown in
-   the System Health tab.
-3. Replace a video file and rerun — the hash changes, events regenerate,
-   and API metrics update accordingly.
+# Full run (1000 frames per camera, ~143s on i7-1355U)
+python process_videos.py
+```
 
----
+After rerunning, restart the API to load the updated events:
 
-## What To Look For
+```bash
+docker compose restart api
+```
 
-1. **Tab 3 (Zone Intelligence)** — see how the official store layout
-   (`Brigade_Road_Store_layout.xlsx`) drives the analytics via `zones.json`.
-   Every zone polygon is derived from the actual floor plan.
+## Integrity Verification
 
-2. **`curl http://localhost:8000/anomalies`** — business-actionable alerts with
-   recommendations and `triggered_at` timestamps from actual pipeline computation.
-   On committed footage: 1 alert fires (`unusual_warehouse_activity` at t=92.3s).
-   All 5 detectors are implemented; others fire when their thresholds are exceeded.
+When `process_videos.py` runs, it computes SHA-256 of every input video file and
+writes `events/video_hashes.json`. The System Health tab (Tab 5) displays these
+hashes. Replacing a video file and rerunning updates the hashes and changes all
+downstream metrics, proving the pipeline is live and not hardcoded.
 
-3. **Tab 4 (Revenue Intelligence)** — salesperson performance ranking and
-   promotion effectiveness analysis from POS data.
+```bash
+curl http://localhost:8000/health   # includes video_hashes in response
+```
 
-4. **Tab 5 (System Health)** — video hash fingerprint proving events were
-   computed from specific files, not fabricated.
+## What to Look For
 
-5. **`python process_videos.py --quick`** — live computation in under 5 minutes.
-   Observe metrics updating after the run. Last full run: 142.6s total on
-   Intel Core i7-1355U (CAM_1: 30.3s, CAM_2: 27.2s, CAM_3: 25.7s,
-   CAM_4: 28.1s, CAM_5: 30.8s) — 2026-06-01.
+1. **Tab 3 (Zone Intelligence)**: how `zones.json` polygons derived from the
+   store layout drive all zone analytics
+2. **`GET /stores/STORE_BLR_002/anomalies`**: operational alerts with
+   `triggered_at` timestamps from actual pipeline computation
+3. **Tab 4 (Revenue Intelligence)**: salesperson performance ranking and
+   promotion effectiveness from POS data
+4. **Tab 5 (System Health)**: video fingerprints, pipeline elapsed time,
+   log buffer showing structured JSON request logs
+5. **`python process_videos.py --quick`**: live recomputation in under 5 minutes;
+   restart API and observe metrics update
+6. **`CHOICES.md`**: rationale for CAM_4 background subtraction, centroid tracker
+   selection, event schema design, and AI-assisted decisions
+7. **`GET /events/sample`**: 10 raw detection events directly from the pipeline
+   showing the data that drives all metrics
 
-6. **`CHOICES.md`** — architectural rationale for using background subtraction
-   for CAM 4 instead of person detection. A deliberate design decision, not a
-   limitation.
+## API Endpoints
 
-7. **`curl http://localhost:8000/events/sample`** — 10 raw detection events
-   directly from the pipeline output showing the underlying data that drives
-   all metrics.
+| Endpoint | Description |
+|----------|-------------|
+| `POST /events/ingest` | Batch event ingest, idempotent by `event_id` |
+| `GET /stores/{id}/metrics` | Traffic, revenue, and operational metrics |
+| `GET /stores/{id}/funnel` | Zone visit funnel with monotonicity validation |
+| `GET /stores/{id}/heatmap` | Dwell and visit frequency, normalised 0-100 |
+| `GET /stores/{id}/anomalies` | Active operational anomalies |
+| `GET /health` | Service status, uptime, video hashes, log buffer |
 
----
+Full interactive schema: http://localhost:8000/docs
 
 ## Limitations
 
-- **No cross-camera person tracking.** Zone-level aggregate counts only.
-  A person appearing in CAM 1 and CAM 5 is not linked as the same individual.
-- **Date mismatch.** Video data is from 16-04-2026; POS CSV is from 10-04-2026.
-  Traffic-sales "alignment" is illustrative, not causal.
-- **Staff filtering is heuristic.** Three pattern-based rules are applied by
-  default to exclude likely staff crossings. Perfect staff detection is not
-  feasible without badges or face recognition. The filtered count is shown
-  transparently in System Health.
-- **Frame sampling.** Default config processes 1000 frames per camera with
-  frame skip 5, covering approximately 2–3 minutes of footage per camera.
-  Metrics represent a sampled window, not the full recording duration.
-- **CPU-only processing.** YOLOv8-nano at 640x360 with frame skip 5 runs
-  on CPU. Processing time varies from 15 to 60+ minutes depending on hardware.
-- **Zone polygons.** Coordinates in `zones.json` are derived from the store
-  layout file and visual frame inspection. Polygon accuracy directly affects
-  zone visit counts.
+- No cross-camera person tracking. All metrics are zone-level aggregate counts.
+  A visitor in CAM_1 and CAM_5 is not linked as the same individual.
+- Video data (16-04-2026) and POS data (10-04-2026) are from different dates.
+  Traffic-sales alignment in the dashboard is illustrative, not causal.
+- Entry count is 0 on committed footage. CAM_3 captures a pre-traffic window;
+  crossing detection is validated synthetically. See `CHOICES.md` for the full
+  analysis.
+- Frame sampling covers approximately 2-3 minutes per camera at default settings
+  (1000 frames, frame_skip=5).
+- Staff filtering uses heuristic positional rules, not badge or face recognition.
+  The filtered count is shown transparently in System Health.
 
----
+## Documentation
 
-## Running the Processing Script
-
-```bash
-# Full run (all 5 cameras, 1000 frames each)
-python process_videos.py
-
-# Quick verification run (300 frames, frame_skip=10, < 5 minutes)
-python process_videos.py --quick
-```
-
-Last full test run: 142.6s (all 5 cameras, 1000 frames each at frame_skip=5, CAM_4 full video)  
-Hardware: Intel Core i7-1355U (13th Gen), 16 GB RAM, Windows 11 Home
-
----
-
-## Engineering Decisions
-
-See `CHOICES.md` for rationale behind all major architectural decisions.
-See `decisions_log.txt` for the raw running log built from day one.
-See `DESIGN.md` for the full system architecture document.
+`DESIGN.md`: system architecture, detection rationale, event schema, Docker design,
+honest limitations, and AI-assisted decisions  
+`CHOICES.md`: every major engineering decision with options considered, AI
+suggestions, and final rationale  
+`decisions_log.txt`: raw running log maintained from day one, cross-referenced
+in both documents

@@ -5,3 +5,24 @@ __pycache__/
 logs/
 *.egg-info/
 .DS_Store
+
+# Internal development documents — kept locally, not published
+Purplle_Master_Plan.md
+PROGRESS.md
+CHECKPOINT_2_3_FAILURE_ANALYSIS.md
+ZONE_CALIBRATION_REPORT.md
+PHASE0_COMPLETE.md
+PHASE0_REPORT.md
+PHASE1_COMPLETE.md
+PHASE1_5_COMPLETE.md
+PHASE1_REPORT.md
+PHASE2_ENVIRONMENT_CHECK.md
+PHASE2_REPORT.md
+PHASE3_REPORT.md
+PHASE4_REPORT.md
+PHASE5_REPORT.md
+PHASE6_REPORT.md
+HANDOFF_PHASE6.md
+tools/investigate_cam4.py
+tools/investigate_cam4_v2.py
+tools/recalibrate_cam4_threshold.py
