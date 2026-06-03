@@ -19,6 +19,7 @@ All responses < 500ms. CORS open for Streamlit dashboard communication.
 import json
 import os
 import time
+import uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -132,7 +133,8 @@ app.add_middleware(
 
 @app.middleware("http")
 async def _log_requests(request: Request, call_next):
-    """Log every request with endpoint, status, response time, and event count."""
+    """Log every request with trace_id, endpoint, status, latency_ms, event_count."""
+    trace_id = str(uuid.uuid4())
     t0 = time.time()
     response = await call_next(request)
     elapsed_ms = round((time.time() - t0) * 1000, 1)
@@ -140,7 +142,8 @@ async def _log_requests(request: Request, call_next):
         _state.get("summary", {}).get("event_counts", {}).get("total", 0)
     )
     _log.info(
-        "endpoint=%s status=%d response_time_ms=%.1f events_count=%d",
+        "trace_id=%s endpoint=%s status=%d latency_ms=%.1f event_count=%d",
+        trace_id,
         request.url.path,
         response.status_code,
         elapsed_ms,
