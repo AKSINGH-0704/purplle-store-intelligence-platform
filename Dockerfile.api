@@ -6,9 +6,12 @@ COPY requirements-api.txt .
 RUN pip install --no-cache-dir -r requirements-api.txt
 
 COPY src/ src/
+COPY events/ events/
 
-# events/ is bind-mounted at runtime so pipeline outputs can be updated
-# without rebuilding the image. See docker-compose.yml.
+# events/ is baked into the image for Railway/standalone deployment.
+# For local dev, docker-compose.yml bind-mounts ./events:/app/events:ro
+# which overrides this layer, allowing pipeline output to be refreshed
+# without rebuilding the image.
 VOLUME ["/app/events", "/app/logs"]
 
 EXPOSE 8000
