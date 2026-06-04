@@ -217,6 +217,16 @@ def _health_data() -> dict:
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────
 
+@app.get("/")
+def root():
+    return {
+        "service": "Purplle Store Intelligence Platform",
+        "status":  "ok",
+        "docs":    "/docs",
+        "health":  "/health",
+    }
+
+
 @app.get("/health")
 def health():
     """System status: uptime, event counts, video hashes, last pipeline run, log buffer."""
