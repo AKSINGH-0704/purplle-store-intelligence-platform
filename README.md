@@ -5,6 +5,15 @@ Computer vision extracts customer behaviour across five camera zones; a REST API
 serves real-time metrics; a Streamlit dashboard surfaces the results for store
 managers and operations teams.
 
+## Live Deployment
+
+| Service | URL |
+|---------|-----|
+| Dashboard (live) | https://purplle-store-intelligence-dashboard.up.railway.app/ |
+| API (live) | https://purplle-store-intelligence-platform-production.up.railway.app/ |
+| API Docs (live) | https://purplle-store-intelligence-platform-production.up.railway.app/docs |
+| Health Check (live) | https://purplle-store-intelligence-platform-production.up.railway.app/health |
+
 ## Key Capabilities
 
 - **Zone-aware detection**: store layout polygons (`zones.json`) derived from the
@@ -22,15 +31,6 @@ managers and operations teams.
   dashboard (port 8501) with health-checked startup ordering
 - **Live recomputation**: `process_videos.py --quick` reruns the full pipeline in
   under five minutes and updates all API metrics on restart
-
-## Live Deployment
-
-| Service | URL |
-|---------|-----|
-| Dashboard (live) | https://purplle-store-intelligence-dashboard.up.railway.app/ |
-| API (live) | https://purplle-store-intelligence-platform-production.up.railway.app/ |
-| API Docs (live) | https://purplle-store-intelligence-platform-production.up.railway.app/docs |
-| Health Check (live) | https://purplle-store-intelligence-platform-production.up.railway.app/health |
 
 ## Setup
 
