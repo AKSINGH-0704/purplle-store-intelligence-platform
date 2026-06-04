@@ -26,3 +26,4 @@ HANDOFF_PHASE6.md
 tools/investigate_cam4.py
 tools/investigate_cam4_v2.py
 tools/recalibrate_cam4_threshold.py
+tools/warehouse_motion_output/

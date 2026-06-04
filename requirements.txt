@@ -17,7 +17,3 @@ numpy>=1.26.0
 # HTTP client (dashboard → API)
 requests>=2.32.0
 
-# TODO: Pin exact versions after running:
-#   pip install -r requirements.txt
-#   pip freeze > requirements_pinned.txt
-# Replace this file with the pinned output before Phase 3 begins.

@@ -23,14 +23,23 @@ managers and operations teams.
 - **Live recomputation**: `process_videos.py --quick` reruns the full pipeline in
   under five minutes and updates all API metrics on restart
 
+## Live Deployment
+
+| Service | URL |
+|---------|-----|
+| Dashboard (live) | https://purplle-store-intelligence-dashboard.up.railway.app/ |
+| API (live) | https://purplle-store-intelligence-platform-production.up.railway.app/ |
+| API Docs (live) | https://purplle-store-intelligence-platform-production.up.railway.app/docs |
+| Health Check (live) | https://purplle-store-intelligence-platform-production.up.railway.app/health |
+
 ## Setup
 
 ```bash
 docker compose up
 ```
 
-Dashboard: http://localhost:8501  
-API docs: http://localhost:8000/docs
+Dashboard: http://localhost:8501 (local)  
+API docs: http://localhost:8000/docs (local)
 
 The stack loads precomputed events at startup. No video files are required to run
 the platform. To rerun the detection pipeline, place MP4 files in `inputs/` first.
@@ -110,7 +119,8 @@ hashes. Replacing a video file and rerunning updates the hashes and changes all
 downstream metrics, proving the pipeline is live and not hardcoded.
 
 ```bash
-curl http://localhost:8000/health   # includes video_hashes in response
+curl http://localhost:8000/health   # local
+curl https://purplle-store-intelligence-platform-production.up.railway.app/health   # live
 ```
 
 ## What to Look For
@@ -141,7 +151,7 @@ curl http://localhost:8000/health   # includes video_hashes in response
 | `GET /stores/{id}/anomalies` | Active operational anomalies |
 | `GET /health` | Service status, uptime, video hashes, log buffer |
 
-Full interactive schema: http://localhost:8000/docs
+Full interactive schema: http://localhost:8000/docs (local) | https://purplle-store-intelligence-platform-production.up.railway.app/docs (live)
 
 ## Limitations
 
